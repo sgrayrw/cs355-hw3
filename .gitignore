@@ -1,0 +1,12 @@
+# editors
+.idea/
+cmake*
+
+# temp files
+.DS_Store
+*~
+
+# object and executables
+*.o
+*.exe
+

@@ -9,7 +9,7 @@ void bg(); // continue a specific job in the background
 
 // job related
 struct Node {
-  struct Job;
+  struct Job job;
   Node next;
 };
 
@@ -18,6 +18,7 @@ struct Job {
   pid_t pid;
   enum Status {Running, Suspended};
   char* args; // args that started the job
+  // terminal modes
 };
 
 Node jobs; // head of linked list
@@ -30,6 +31,7 @@ sigset_t sigset; // sigset to block to protect critical section
 void* inthandler(int, siginfo_t*, void*); // for ctrl-c
 void* tstphandler(int, siginfo_t*, void*); // for ctrl-z
 void chldhandler(int, siginfo_t*, void*); // for child suspension and termination
+// other signals that may cause the shell to terminate
 
 // main loop related
 char* line // dynamically allocated in read_line()
@@ -64,6 +66,7 @@ void eval(){
   // exec call
   pid_t pid = fork();
   if (pid == 0) { // child
+    // need to set signal handlers back (to default behavior)
     setpgrp();
     exec();
   } else { // parent

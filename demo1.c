@@ -18,7 +18,7 @@ int main() {
     if ((pid = fork()) == 0) {
         // child, terminate in 1 sec
         sleep(1);
-        printf("Child terminated now\n");
+        printf("Child terminating now\n");
         exit(0);
     } else {
         // parent, enter critical region not to be interrupted by SIGCHLD

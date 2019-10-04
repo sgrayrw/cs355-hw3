@@ -1,3 +1,6 @@
+#include <signal.h>
+#include <stdio.h>
+
 // builtin functions
 typedef builtin_func void (builtin_func)(void) // type for builtin functions
 builtin_func get_builtin(); // return the appropriate built-in func based on `tokens`, NULL if no match
@@ -29,13 +32,13 @@ void remove_job(pid_t pid); // remove job from linked list
 void initialize_handlers(); // register for signal handlers using sigaction(), initialize sigset for SIGCHLD to protect critical section on job list
 sigset_t sigset; // sigset to block to protect critical section
 void* inthandler(int, siginfo_t*, void*); // for ctrl-c
-void* tstphandler(int, siginfo_t*, void*); // for ctrl-z
 void chldhandler(int, siginfo_t*, void*); // for child suspension and termination
 // other signals that may cause the shell to terminate
 
 // main loop related
 char* line // dynamically allocated in read_line()
 char** tokens // dynamically allocated in parse_line()
+void prompt(); // print out new prompt
 void read_line(); // read into line buffer
 void parse_line(); // parse arguments with delimiters
 void eval(); // evaluate tokens and call builtin/exec
@@ -48,6 +51,7 @@ int main() {
     initialize_handlers(); // register for signal handlers
 
     while (1) {
+        prompt();
         read_line(); // read into line buffer
         parse_line(); // parse arguments
         eval(); // evaluate arguments
@@ -56,7 +60,27 @@ int main() {
     return 0;
 }
 
-void eval(){
+void initialize_handlers() {
+    signal(SIGINT, inthandler)
+    signal(SIGTERM, SIG_IGN);
+    signal(SIGTSTP, SIG_IGN);
+    signal(SIGQUIT, SIG_IGN);
+}
+    
+void inthandler(int sig) {
+    printf("\n");
+    prompt();
+}
+
+void prompt() {
+    printf("[mysh]$ ");
+}
+
+void read_line() {
+    
+}
+
+void eval() {
     builtin_func func = get_builtin();
     if (func) {
         func();
@@ -80,5 +104,4 @@ void eval(){
             waitpid(pid, &status);
         }
     }
-
 }

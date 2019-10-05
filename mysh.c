@@ -118,7 +118,7 @@ char *next_token(int position) {
     }
     token = malloc(sizeof(char) * (length + 1));
     for (i = 0; i < length; i++, position++) {
-        token[i] = line[position]
+        token[i] = line[position];
     }
     token[i] = NULL;
     return token;

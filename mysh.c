@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #define DELIMITERS " \f\n\r\t\v"
 
@@ -97,16 +98,21 @@ void parse_line() {
         return;
     }
     while ((length = next_token_length(position)) != 0) {
-        n++;
+        if (!isspace(line[position])) {
+            n++;
+        }
         position += length;
     }
     tokens = malloc(sizeof(char*) * (n + 1));
     position = 0;
     while ((length = next_token_length(position)) != 0) {
-        token = malloc(sizeof(char) * (length + 1));
-        strncpy(token, &line[position], length);
-        token[length] = NULL;
-        tokens[i++] = token;
+        if (!isspace(line[position])) {
+            token = malloc(sizeof(char) * (length + 1));
+            strncpy(token, &line[position], length);
+            token[length] = NULL;
+            tokens[i++] = token;
+        }
+        position += length;
     }
     tokens[n] = NULL;
 }

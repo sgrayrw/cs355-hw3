@@ -5,6 +5,9 @@
 #include <ctype.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <errno.h>
+#include <stdbool.h>
+#include <sys/wait.h>
 
 #define DELIMITERS " \f\n\r\t\v"
 
@@ -49,21 +52,20 @@ void read_line(); // read into line buffer
 void parse_line(); // parse arguments with delimiters
 int next_token_length(int); // helper function for parse_line()
 void eval(); // evaluate tokens and call builtin/exec
-void free_storage(); // free allocated memory
-bool is_background(); // check if line ends with `&` (background job), AND remove if present
+void free_memory(); // free allocated memory
+bool launch_in_background(); // check if line ends with `&` (background job), AND remove if present
 
 // *********************************** data structure/function defs and global vars above ***********************************
 
 int main() {
     initialize_handlers(); // register for signal handlers
 
-    while (1) {
+    while (true) {
         read_line(); // read into line buffer
         parse_line(); // parse arguments
         eval(); // evaluate arguments
         free_storage(); // free spaces
     }
-    return 0;
 }
 
 void initialize_handlers() {
@@ -152,16 +154,26 @@ void launch_process() {
             signal(i, SIG_DFL);
         }
         setpgrp();
-        exec();
-    } else { // parent
-        if (is_background()) {
+        if (execvp(tokens[0], tokens) == -1) {
+            if (errno = ENOENT) {
+                fprintf(stderr, "No such file or directory.\n");
+            } else {
+                fprintf(stderr, "%s: command not found.\n", tokens[0]);
+            }
+            free_memory();
+            exit(EXIT_FAILURE);
+        }
+    } else if (pid > 0) { // parent
+        setpgid(pid, pid);
+        if (launch_in_background()) {
             sigprocmask(BLOCK, &sigset, NULL); // mask SIGCHLD to protect CS
             add_job(pid);
             sigprocmask(UNBLOCK, &sigset, NULL);
-            return;
         } else {
-            tcsetpgrp(0, pid);
+            tcsetpgrp(stdin, pid);
             waitpid(pid, &status);
         }
+    } else {
+        fprintf(stderr, "Error forking a process.\n");
     }
 }

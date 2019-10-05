@@ -92,7 +92,7 @@ void read_line() {
 }
 
 void parse_line() {
-    int position, length, n, i;
+    int position = 0, length, n = 0, i = 0;
     char *token;
     if (line == NULL) {
         return;

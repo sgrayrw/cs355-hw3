@@ -118,7 +118,7 @@ void parse_line() {
 }
 
 int next_token_length(int position) {
-    int length;
+    int length = 0;
     if (line[position] == '\0') {
         length = 0;
     } else if (strchr(DELIMITERS, line[position]) != NULL) {
@@ -128,8 +128,8 @@ int next_token_length(int position) {
             position++;
             length++;
         }
-        return length;
     }
+    return length;
 }
 
 void eval() {

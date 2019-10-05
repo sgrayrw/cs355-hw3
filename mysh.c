@@ -41,6 +41,7 @@ char* line // dynamically allocated in read_line()
 char** tokens // dynamically allocated in parse_line()
 void read_line(); // read into line buffer
 void parse_line(); // parse arguments with delimiters
+char *next_token(int); // helper function for parse_line()
 void eval(); // evaluate tokens and call builtin/exec
 void free_storage(); // free allocated memory
 bool is_background(); // check if line ends with `&` (background job), AND remove if present
@@ -87,9 +88,18 @@ void read_line() {
 }
 
 void parse_line() {
+    int position, n, i;
     if (line == NULL) {
         return;
     }
+    while (next_token(position) != NULL) {
+        n++;
+    }
+    tokens = malloc(sizeof(char*) * (n + 1));
+    while ((tokens[i++] = next_token(position)) != NULL);
+}
+
+char *next_token(int position) {
     
 }
 

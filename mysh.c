@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #define DELIMITERS " \f\n\r\t\v"
 
@@ -139,7 +141,10 @@ void eval() {
         return;
     }
 
-    // exec call
+    launch_process();
+}
+
+void launch_process() {
     pid_t pid = fork();
     if (pid == 0) { // child
         // need to set signal handlers back (to default behavior)

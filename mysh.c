@@ -41,8 +41,8 @@ void chldhandler(int, siginfo_t*, void*); // for child suspension and terminatio
 // other signals that may cause the shell to terminate
 
 // main loop related
-char* line // dynamically allocated in read_line()
-char** tokens // dynamically allocated in parse_line()
+char* line; // dynamically allocated in read_line()
+char** tokens; // dynamically allocated in parse_line()
 void read_line(); // read into line buffer
 void parse_line(); // parse arguments with delimiters
 int next_token_length(int); // helper function for parse_line()
@@ -66,8 +66,8 @@ int main() {
 
 void initialize_handlers() {
     struct sigaction sigint_action = {
-        .sa_handler = &inthandler;
-        .sa_flags = 0;
+        .sa_handler = &sigint_handler,
+        .sa_flags = 0
     };
     sigemptyset(&sigint_action.sa_mask);
     sigaction(SIGINT, &sigint_action, NULL);
@@ -109,7 +109,7 @@ void parse_line() {
         if (!isspace(line[position])) {
             token = malloc(sizeof(char) * (length + 1));
             strncpy(token, &line[position], length);
-            token[length] = NULL;
+            token[length] = '\0';
             tokens[i++] = token;
         }
         position += length;
@@ -119,12 +119,12 @@ void parse_line() {
 
 int next_token_length(int position) {
     int length;
-    if (line[position] == NULL) {
+    if (line[position] == '\0') {
         length = 0;
     } else if (strchr(DELIMITERS, line[position]) != NULL) {
         length = 1;
     } else {
-        while (line[position] != NULL && strchr(DELIMITERS, line[position]) == NULL) {
+        while (line[position] != '\0' && strchr(DELIMITERS, line[position]) == NULL) {
             position++;
             length++;
         }

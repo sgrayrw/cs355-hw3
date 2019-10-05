@@ -1,5 +1,6 @@
 #include <signal.h>
 #include <stdio.h>
+#include <string.h>
 
 // builtin functions
 typedef builtin_func void (builtin_func)(void) // type for builtin functions
@@ -31,14 +32,13 @@ void remove_job(pid_t pid); // remove job from linked list
 // sighandlers
 void initialize_handlers(); // register for signal handlers using sigaction(), initialize sigset for SIGCHLD to protect critical section on job list
 sigset_t sigset; // sigset to block to protect critical section
-void* inthandler(int, siginfo_t*, void*); // for ctrl-c
+void sigint_handler(int); // for ctrl-c
 void chldhandler(int, siginfo_t*, void*); // for child suspension and termination
 // other signals that may cause the shell to terminate
 
 // main loop related
 char* line // dynamically allocated in read_line()
 char** tokens // dynamically allocated in parse_line()
-void prompt(); // print out new prompt
 void read_line(); // read into line buffer
 void parse_line(); // parse arguments with delimiters
 void eval(); // evaluate tokens and call builtin/exec
@@ -51,7 +51,6 @@ int main() {
     initialize_handlers(); // register for signal handlers
 
     while (1) {
-        prompt();
         read_line(); // read into line buffer
         parse_line(); // parse arguments
         eval(); // evaluate arguments
@@ -61,22 +60,36 @@ int main() {
 }
 
 void initialize_handlers() {
-    signal(SIGINT, inthandler)
+    struct sigaction sigint_action = {
+        .sa_handler = &inthandler;
+        .sa_flags = 0;
+    };
+    sigemptyset(&sigint_action.sa_mask);
+    sigaction(SIGINT, &sigint_action, NULL);
+    
     signal(SIGTERM, SIG_IGN);
     signal(SIGTSTP, SIG_IGN);
     signal(SIGQUIT, SIG_IGN);
+    signal(SIGTTIN, SIG_IGN);
+    signal(SIGTTOU, SIG_IGN);
 }
     
-void inthandler(int sig) {
+void sigint_handler(int sig) {
     printf("\n");
-    prompt();
-}
-
-void prompt() {
-    printf("[mysh]$ ");
 }
 
 void read_line() {
+    size_t n;
+    printf("[mysh]$ ");
+    if (getline(&line, &n, stdin) == -1) {
+        my_exit();
+    }
+}
+
+void parse_line() {
+    if (line == NULL) {
+        return;
+    }
     
 }
 

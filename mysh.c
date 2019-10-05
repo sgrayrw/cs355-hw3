@@ -1,6 +1,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 // builtin functions
 typedef builtin_func void (builtin_func)(void) // type for builtin functions
@@ -100,7 +101,25 @@ void parse_line() {
 }
 
 char *next_token(int position) {
-    
+    char *token;
+    int length, i;
+    if (line[position] == NULL) {
+        return NULL;
+    } else if (strchr(DELIMITERS, line[position]) != NULL) {
+        length = 1;
+    } else {
+        i = position;
+        while (line[i] != NULL && strchr(DELIMITERS, line[i]) == NULL) {
+            length++;
+            i++;
+        }
+    }
+    token = malloc(sizeof(char) * (length + 1));
+    for (i = 0; i < length; i++, position++) {
+        token[i] = line[position]
+    }
+    token[i] = NULL;
+    return token;
 }
 
 void eval() {

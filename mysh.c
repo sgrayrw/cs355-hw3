@@ -145,9 +145,12 @@ void eval() {
 }
 
 void launch_process() {
+    int i;
     pid_t pid = fork();
     if (pid == 0) { // child
-        // need to set signal handlers back (to default behavior)
+        for (i = 1; i < 32; i++) {
+            signal(i, SIG_DFL);
+        }
         setpgrp();
         exec();
     } else { // parent

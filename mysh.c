@@ -44,7 +44,7 @@ char* line // dynamically allocated in read_line()
 char** tokens // dynamically allocated in parse_line()
 void read_line(); // read into line buffer
 void parse_line(); // parse arguments with delimiters
-char *next_token(int); // helper function for parse_line()
+int next_token_length(int); // helper function for parse_line()
 void eval(); // evaluate tokens and call builtin/exec
 void free_storage(); // free allocated memory
 bool is_background(); // check if line ends with `&` (background job), AND remove if present
@@ -91,37 +91,39 @@ void read_line() {
 }
 
 void parse_line() {
-    int position, n, i;
+    int position, length, n, i;
+    char *token;
     if (line == NULL) {
         return;
     }
-    while (next_token(position) != NULL) {
+    while ((length = next_token_length(position)) != 0) {
         n++;
+        position += length;
     }
     tokens = malloc(sizeof(char*) * (n + 1));
-    while ((tokens[i++] = next_token(position)) != NULL);
+    position = 0;
+    while ((length = next_token_length(position)) != 0) {
+        token = malloc(sizeof(char) * (length + 1));
+        strncpy(token, &line[position], length);
+        token[length] = NULL;
+        tokens[i++] = token;
+    }
+    tokens[n] = NULL;
 }
 
-char *next_token(int position) {
-    char *token;
-    int length, i;
+int next_token_length(int position) {
+    int length;
     if (line[position] == NULL) {
-        return NULL;
+        length = 0;
     } else if (strchr(DELIMITERS, line[position]) != NULL) {
         length = 1;
     } else {
-        i = position;
-        while (line[i] != NULL && strchr(DELIMITERS, line[i]) == NULL) {
+        while (line[position] != NULL && strchr(DELIMITERS, line[position]) == NULL) {
+            position++;
             length++;
-            i++;
         }
+        return length;
     }
-    token = malloc(sizeof(char) * (length + 1));
-    for (i = 0; i < length; i++, position++) {
-        token[i] = line[position];
-    }
-    token[i] = NULL;
-    return token;
 }
 
 void eval() {

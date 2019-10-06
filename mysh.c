@@ -15,6 +15,7 @@
 struct Node jobs; // head of linked list
 char* line; // dynamically allocated in read_line()
 char** tokens; // dynamically allocated in parse_line()
+int argc;
 
 // main loop
 void read_line(); // read into line buffer
@@ -26,7 +27,9 @@ bool launch_in_background(); // check if line ends with `&` (background job), AN
 
 
 int main() {
+    struct termios mysh_tc;
     initialize_handlers(); // register for signal handlers
+
 
     while (true) {
         read_line(); // read into line buffer
@@ -68,6 +71,7 @@ void parse_line() {
         position += length;
     }
     tokens[n] = NULL;
+    argc = n;
 }
 
 int next_token_length(int position) {

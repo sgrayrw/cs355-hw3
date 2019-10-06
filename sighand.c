@@ -1,12 +1,21 @@
 #include "sighand.h"
+#include "job.h"
 
 void initialize_handlers() {
     struct sigaction sigint_action = {
         .sa_handler = &sigint_handler,
         .sa_flags = 0
     };
+    struct sigaction sigchld_action = {
+        .sa_sigaction = &sigchld_handler,
+        .sa_flags = 0
+    }
+
     sigemptyset(&sigint_action.sa_mask);
     sigaction(SIGINT, &sigint_action, NULL);
+
+    sigemptyset(&sigchld_action.sa_mask);
+    sigaction(SIGCHLD, &sigchld_action, NULL);
 
     signal(SIGTERM, SIG_IGN);
     signal(SIGTSTP, SIG_IGN);
@@ -17,4 +26,20 @@ void initialize_handlers() {
 
 void sigint_handler(int sig) {
     printf("\n");
+}
+
+void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
+    pid_t child = info->si_pid;
+    int status;
+    switch (info->si_code) {
+        case CLD_EXITED: case CLD_KILLED: case CLD_DUMPED:
+            remove_job_pid(child);
+            waitpid(info->si_pid, &status, 0);
+        case CLD_STOPPED:
+            change_job_status(child, Status.Suspended);
+        case CLD_CONTINUED:
+            change_job_status(child, Status.Running);
+        default:
+            //nothing
+    }
 }

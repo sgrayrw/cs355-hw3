@@ -1,9 +1,9 @@
-#include <signal.h>
-#include <stdio.h>
+#include "job.h"
+#include "builtin.h"
+#include "sighand.h"
+
 #include <string.h>
-#include <stdlib.h>
 #include <ctype.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <errno.h>
 #include <stdbool.h>
@@ -11,43 +11,12 @@
 
 #define DELIMITERS " \f\n\r\t\v"
 
-// builtin functions
-typedef builtin_func void (builtin_func)(void) // type for builtin functions
-builtin_func get_builtin(); // return the appropriate built-in func based on `tokens`, NULL if no match
-void my_exit();
-void jobs(); // list all background jobs
-void kill(); // kill a background job
-void fg(); // put a specific job to the foreground
-void bg(); // continue a specific job in the background
-
-// job related
-struct Node {
-    struct Job job;
-    Node next;
-};
-
-struct Job {
-    int jid; // job id
-    pid_t pid;
-    enum Status {Running, Suspended};
-    char* args; // args that started the job
-    // terminal modes
-};
-
-Node jobs; // head of linked list
-void add_job(pid_t pid, enum Status status, char* args); // add job to linked list
-void remove_job(pid_t pid); // remove job from linked list
-
-// sighandlers
-void initialize_handlers(); // register for signal handlers using sigaction(), initialize sigset for SIGCHLD to protect critical section on job list
-sigset_t sigset; // sigset to block to protect critical section
-void sigint_handler(int); // for ctrl-c
-void chldhandler(int, siginfo_t*, void*); // for child suspension and termination
-// other signals that may cause the shell to terminate
-
-// main loop related
+// global vars
+struct Node jobs; // head of linked list
 char* line; // dynamically allocated in read_line()
 char** tokens; // dynamically allocated in parse_line()
+
+// main loop
 void read_line(); // read into line buffer
 void parse_line(); // parse arguments with delimiters
 int next_token_length(int); // helper function for parse_line()
@@ -55,7 +24,6 @@ void eval(); // evaluate tokens and call builtin/exec
 void free_memory(); // free allocated memory
 bool launch_in_background(); // check if line ends with `&` (background job), AND remove if present
 
-// *********************************** data structure/function defs and global vars above ***********************************
 
 int main() {
     initialize_handlers(); // register for signal handlers
@@ -64,27 +32,8 @@ int main() {
         read_line(); // read into line buffer
         parse_line(); // parse arguments
         eval(); // evaluate arguments
-        free_storage(); // free spaces
+        free_memory(); // free spaces
     }
-}
-
-void initialize_handlers() {
-    struct sigaction sigint_action = {
-        .sa_handler = &sigint_handler,
-        .sa_flags = 0
-    };
-    sigemptyset(&sigint_action.sa_mask);
-    sigaction(SIGINT, &sigint_action, NULL);
-    
-    signal(SIGTERM, SIG_IGN);
-    signal(SIGTSTP, SIG_IGN);
-    signal(SIGQUIT, SIG_IGN);
-    signal(SIGTTIN, SIG_IGN);
-    signal(SIGTTOU, SIG_IGN);
-}
-    
-void sigint_handler(int sig) {
-    printf("\n");
 }
 
 void read_line() {
@@ -166,9 +115,8 @@ void launch_process() {
     } else if (pid > 0) { // parent
         setpgid(pid, pid);
         if (launch_in_background()) {
-            sigprocmask(BLOCK, &sigset, NULL); // mask SIGCHLD to protect CS
+            // TODO: mask SIGCHLD to protect CS
             add_job(pid);
-            sigprocmask(UNBLOCK, &sigset, NULL);
         } else {
             tcsetpgrp(stdin, pid);
             waitpid(pid, &status);

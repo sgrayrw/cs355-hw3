@@ -10,8 +10,10 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <sys/wait.h>
-
-#define DELIMITERS " \f\n\r\t\v"
+#include <termios.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 // global vars
 char* line; // dynamically allocated in read_line()

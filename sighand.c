@@ -9,7 +9,7 @@ void initialize_handlers() {
     struct sigaction sigchld_action = {
         .sa_sigaction = &sigchld_handler,
         .sa_flags = 0
-    }
+    };
 
     sigemptyset(&sigint_action.sa_mask);
     sigaction(SIGINT, &sigint_action, NULL);
@@ -36,9 +36,9 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
             remove_job_pid(child);
             waitpid(info->si_pid, &status, 0);
         case CLD_STOPPED:
-            change_job_status(child, Status.Suspended);
+            change_job_status(child, Suspended);
         case CLD_CONTINUED:
-            change_job_status(child, Status.Running);
+            change_job_status(child, Running);
         default:
             //nothing
     }

@@ -6,8 +6,6 @@
 #include <string.h>
 #include <termios.h>
 
-extern struct Node* jobs;
-
 typedef enum {
     Running,
     Suspended
@@ -28,7 +26,10 @@ struct Node {
     struct Node* prev;
 };
 
+struct Job* get_job(int jid);
 void add_job(pid_t pid, Status status, char* args, struct termios* tcattr);
-void remove_job(pid_t pid);
+int remove_job(pid_t pid);
+void change_job_status(pid_t pid, Status status);
+void free_node(struct Node* node);
 
 #endif

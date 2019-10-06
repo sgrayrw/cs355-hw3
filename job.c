@@ -1,4 +1,14 @@
 #include "job.h"
+#include "mysh.h"
+
+struct Job* get_job(int jid) {
+    for (struct Node* node = jobs; node; node = node->next) {
+        if (node->job->jid == jid) {
+            return node->job;
+        }
+    }
+    return NULL;
+}
 
 void add_job(pid_t pid, Status status, char* args, struct termios* tcattr) {
     struct Job* job = malloc(sizeof(struct Job));
@@ -21,10 +31,46 @@ void add_job(pid_t pid, Status status, char* args, struct termios* tcattr) {
     if (jobs == NULL) {
         jobs = node;
         jobs->next = NULL;
-        jobs->prev = NULL;
     } else {
-        jobs->prev = node;
         node->next = jobs;
         jobs = node;
     }
+}
+
+int remove_job(pid_t pid) {
+    struct Node* cur = jobs, *prev = NULL;
+
+    if (cur && cur->job->pid == pid) {
+        jobs = cur->next;
+        free_node(cur);
+        return 0;
+    }
+
+    while (cur && cur->job->pid != pid) {
+        prev = cur;
+        cur = cur->next;
+    }
+
+    if (cur == NULL) {
+        return -1;
+    } else {
+        prev->next = cur->next;
+        free_node(cur);
+        return 0;
+    }
+}
+
+void change_job_status(pid_t pid, Status status) {
+    for (struct Node* node = jobs; node; node = node->next) {
+        if (node->job->pid == pid) {
+            node->job->status = status;
+        }
+    }
+}
+
+void free_node(struct Node* node) {
+    free(node->job->tcattr);
+    free(node->job->args);
+    free(node->job);
+    free(node);
 }

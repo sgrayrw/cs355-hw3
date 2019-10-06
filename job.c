@@ -27,7 +27,11 @@ void add_job(pid_t pid, Status status, char* args, struct termios* tcattr) {
     struct Node* node = malloc(sizeof(struct Node));
     node->job = job;
 
-    // add to head
+    // add to head (CS, masking SIGCHLD)
+    sigset_t sigset;
+    sigemptyset(&sigset);
+    sigaddset(&sigset, SIGCHLD);
+    sigprocmask(SIG_BLOCK, &sigset, NULL);
     if (jobs == NULL) {
         jobs = node;
         jobs->next = NULL;
@@ -35,6 +39,7 @@ void add_job(pid_t pid, Status status, char* args, struct termios* tcattr) {
         node->next = jobs;
         jobs = node;
     }
+    sigprocmask(SIG_UNBLOCK, &sigset, NULL);
 }
 
 int remove_job(pid_t pid) {

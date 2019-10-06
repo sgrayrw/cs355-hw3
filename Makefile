@@ -1,8 +1,13 @@
-all: mysh
+TARGET = mysh
 
-mysh: mysh.c
-	gcc -o mysh mysh.c
-
-binaries = mysh
+all: $(TARGET)
+mysh: mysh.c sighand.o job.o builtin.o
+	gcc -o $@ mysh.c sighand.o job.o builtin.o
+sighand.o: sighand.c sighand.h
+	gcc -c -o $@ sighand.c
+job.o: job.c job.h
+	gcc -c -o $@ job.c
+builtin.o: builtin.c builtin.h
+	gcc -c -o $@ builtin.c
 clean:
-	rm $(binaries)
+	rm -f $(TARGET) *.a *.o *~

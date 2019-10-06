@@ -2,7 +2,6 @@
 #include "builtin.h"
 #include "sighand.h"
 
-#include <string.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -12,7 +11,6 @@
 #define DELIMITERS " \f\n\r\t\v"
 
 // global vars
-struct Node jobs; // head of linked list
 char* line; // dynamically allocated in read_line()
 char** tokens; // dynamically allocated in parse_line()
 int argc;

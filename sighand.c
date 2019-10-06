@@ -33,7 +33,7 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
     int status;
     switch (info->si_code) {
         case CLD_EXITED: case CLD_KILLED: case CLD_DUMPED:
-            remove_job_pid(child);
+            remove_job(child);
             waitpid(info->si_pid, &status, 0);
         case CLD_STOPPED:
             change_job_status(child, Suspended);

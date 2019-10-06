@@ -9,6 +9,5 @@ cmake*
 # object and executables
 *.o
 *.exe
-demo1
 mysh
 

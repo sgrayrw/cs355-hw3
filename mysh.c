@@ -1,9 +1,13 @@
 #include "mysh.h"
 
+#define DELIMITERS " \f\n\r\t\v"
+#define SIG_MIN 1
+#define SIG_MAX 31
+
 int main() {
     struct termios mysh_tc;
     initialize_handlers(); // register for signal handlers
-
+    tcgetattr(stdin, &mysh_tc);
 
     while (true) {
         read_line(); // read into line buffer
@@ -76,8 +80,10 @@ void eval() {
 void launch_process() {
     int i;
     pid_t pid = fork();
+    struct termios tc_attr;
+    bool background = launch_in_background();
     if (pid == 0) { // child
-        for (i = 1; i < 32; i++) {
+        for (i = SIG_MIN; i < SIG_MAX; i++) {
             signal(i, SIG_DFL);
         }
         setpgrp();
@@ -93,13 +99,23 @@ void launch_process() {
     } else if (pid > 0) { // parent
         setpgid(pid, pid);
         if (launch_in_background()) {
-            // TODO: mask SIGCHLD to protect CS
-            add_job(pid);
+            add_job(pid, Running, tokens, &mysh_tc);
         } else {
             tcsetpgrp(stdin, pid);
-            waitpid(pid, &status);
+            waitpid(pid, &status, WUNTRACED);
         }
     } else {
         fprintf(stderr, "Error forking a process.\n");
+    }
+}
+
+bool launch_in_background() {
+    if (strcmp(tokens[argc - 1], "&") == 0) {
+        tokens[argc - 1] = realloc(sizeof(char));
+        tokens[argc - 1][0] = '\0';
+        free(tokens[argc]);
+        return true;
+    } else {
+        return false;
     }
 }

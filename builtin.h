@@ -1,6 +1,9 @@
 #ifndef HW3_BUILTIN_H
 #define HW3_BUILTIN_H
 
+#include "job.h"
+#include "builtin.h"
+
 // builtin functions
 typedef builtin_func void (builtin_func)(void) // type for builtin functions
 builtin_func get_builtin(char** tokens); // return the appropriate built-in func based on `tokens`, NULL if no match

@@ -2,7 +2,6 @@
 
 #define DELIMITERS " \f\n\r\t\v"
 #define SIG_MIN 1
-#define SIG_MAX 31
 
 int main() {
     struct termios mysh_tc;
@@ -79,7 +78,7 @@ void launch_process() {
     struct termios tc_attr;
     bool background = launch_in_background();
     if (pid == 0) { // child
-        for (i = SIG_MIN; i < SIG_MAX; i++) {
+        for (i = SIG_MIN; i < NSIG; i++) {
             signal(i, SIG_DFL);
         }
         setpgrp();

@@ -68,11 +68,7 @@ int next_token_length(int position) {
 }
 
 void eval() {
-    builtin_func func = get_builtin();
-    if (func) {
-        func();
-        return;
-    }
+    builtin();
 
     launch_process();
 }

@@ -9,8 +9,7 @@
 #include "mysh.h"
 
 // builtin functions
-typedef builtin_func void (builtin_func)(void) // type for builtin functions
-builtin_func get_builtin(char** tokens); // return the appropriate built-in func based on `tokens`, NULL if no match
+void builtin();
 void my_exit();
 void my_jobs(); // list all background jobs
 void my_kill(); // kill a background job

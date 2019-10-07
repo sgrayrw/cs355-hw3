@@ -1,8 +1,12 @@
 #ifndef HW3_BUILTIN_H
 #define HW3_BUILTIN_H
 
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "job.h"
-#include "builtin.h"
+#include "mysh.h"
 
 // builtin functions
 typedef builtin_func void (builtin_func)(void) // type for builtin functions

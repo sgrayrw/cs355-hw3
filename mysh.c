@@ -1,12 +1,11 @@
 #include "mysh.h"
 
 #define DELIMITERS " \f\n\r\t\v"
-#define SIG_MIN 1
 
 int main() {
     struct termios mysh_tc;
     initialize_handlers(); // register for signal handlers
-    tcgetattr(stdin, &mysh_tc);
+    tcgetattr(STDIN_FILENO, &mysh_tc);
 
     while (true) {
         read_line(); // read into line buffer
@@ -83,7 +82,7 @@ void launch_process() {
         }
         setpgrp();
         if (execvp(tokens[0], tokens) == -1) {
-            if (errno = ENOENT) {
+            if (errno == ENOENT) {
                 fprintf(stderr, "No such file or directory.\n");
             } else {
                 fprintf(stderr, "%s: command not found.\n", tokens[0]);
@@ -93,10 +92,11 @@ void launch_process() {
         }
     } else if (pid > 0) { // parent
         setpgid(pid, pid);
-        if (launch_in_background()) {
+        if (background) {
             add_job(pid, Running, tokens, &mysh_tc);
         } else {
-            tcsetpgrp(stdin, pid);
+            tcsetpgrp(STDIN_FILENO, pid);
+            int status;
             waitpid(pid, &status, WUNTRACED);
         }
     } else {
@@ -106,7 +106,7 @@ void launch_process() {
 
 bool launch_in_background() {
     if (strcmp(tokens[argc - 1], "&") == 0) {
-        tokens[argc - 1] = realloc(sizeof(char));
+        tokens[argc - 1] = realloc(tokens[argc - 1], sizeof(char));
         tokens[argc - 1][0] = '\0';
         free(tokens[argc]);
         return true;

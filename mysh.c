@@ -1,6 +1,6 @@
 #include "mysh.h"
 
-#define DELIMITERS " \f\n\r\t\v"
+#define DELIMITERS "& \f\n\r\t\v"
 #define SIG_MIN 1
 
 int main() {
@@ -9,6 +9,7 @@ int main() {
     tcgetattr(stdin, &mysh_tc);
 
     while (true) {
+        tcsetattr(stdin, TCSADRAIN, &mysh_tc);
         read_line(); // read into line buffer
         parse_line(); // parse arguments
         eval(); // evaluate arguments
@@ -17,10 +18,14 @@ int main() {
 }
 
 void read_line() {
-    size_t n;
+    size_t n = 0;
     printf("[mysh]$ ");
     if (getline(&line, &n, stdin) == -1) {
-        my_exit();
+        if (feof(stdin)) {
+            my_exit();
+        } else {
+            clearerr(stdin);
+        }
     }
 }
 

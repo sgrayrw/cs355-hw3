@@ -8,7 +8,7 @@ void initialize_handlers() {
     };
     struct sigaction sigchld_action = {
         .sa_sigaction = &sigchld_handler,
-        .sa_flags = 0
+        .sa_flags = SA_RESTART | SA_SIGINFO
     };
 
     sigemptyset(&sigint_action.sa_mask);
@@ -36,10 +36,14 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
             remove_job(child);
             waitpid(info->si_pid, &status, 0);
         case CLD_STOPPED:
-            change_job_status(child, Suspended);
+            if (tcgetpgrp() = getpgid(child)) {
+                add_job(child, Suspended, tokens, )
+            } else {
+                change_job_status(child, Suspended);
+            }
         case CLD_CONTINUED:
             change_job_status(child, Running);
         default:
-            //nothing
+            ; //nothing
     }
 }

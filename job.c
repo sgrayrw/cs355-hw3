@@ -75,7 +75,20 @@ void change_job_status(pid_t pid, Status status) {
 
 void free_node(struct Node* node) {
     free(node->job->tcattr);
+    node->job->tcattr = NULL;
     free(node->job->args);
+    node->job->args = NULL;
     free(node->job);
+    node->job = NULL;
     free(node);
+    node = NULL;
+}
+
+void free_list() {
+    struct Node* node = jobs;
+    while (node) {
+        jobs = jobs->next;
+        free_node(node);
+        node = jobs;
+    }
 }

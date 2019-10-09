@@ -70,8 +70,8 @@ int next_token_length(int position) {
 }
 
 void eval() {
+    // call builtin OR exec child
     builtin();
-
     launch_process();
 }
 

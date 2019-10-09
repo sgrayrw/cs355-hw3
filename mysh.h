@@ -30,6 +30,7 @@ void eval(); // evaluate tokens and call builtin/exec
 void builtin();
 void launch_process();
 void free_tokens();
+void free_args();
 bool launch_in_background(); // check if line ends with `&` (background job), AND remove if present
 
 

@@ -26,7 +26,7 @@ int builtin(){
             my_bg();
             return 1;
         } else if (strcmp(tokens[0],"fg")==0) {
-            my_bg();
+            my_fg();
             return 1;
         }
     }

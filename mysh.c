@@ -3,6 +3,7 @@
 #define DELIMITERS "& \f\n\r\t\v"
 
 int main() {
+    jobs = NULL;
     initialize_handlers(); // register for signal handlers
     tcgetattr(STDIN_FILENO, &mysh_tc);
 
@@ -11,7 +12,7 @@ int main() {
         read_line(); // read into line buffer
         parse_line(); // parse arguments
         eval(); // evaluate arguments
-        free_memory(); // free spaces
+//        free_memory(); // free spaces
     }
 }
 
@@ -71,8 +72,9 @@ int next_token_length(int position) {
 
 void eval() {
     // call builtin OR exec child
-//    builtin();
-    launch_process();
+    if (builtin(tokens, argc) == false) {
+        launch_process();
+    }
 }
 
 void launch_process() {
@@ -91,7 +93,7 @@ void launch_process() {
             } else {
                 fprintf(stderr, "%s: command not found.\n", tokens[0]);
             }
-            free_memory();
+//            free_memory();
             exit(EXIT_FAILURE);
         }
     } else if (pid > 0) { // parent

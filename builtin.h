@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 // builtin functions
 int builtin(char** neededtokens, int argclength);

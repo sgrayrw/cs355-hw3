@@ -17,10 +17,10 @@
 
 // global vars
 char* line; // dynamically allocated in read_line()
-extern char** tokens; // dynamically allocated in parse_line()
-extern int argc;
-extern struct Node *jobs;
-extern struct termios mysh_tc;
+char** tokens; // dynamically allocated in parse_line()
+int argc;
+struct Node* jobs;
+struct termios mysh_tc;
 
 // main loop
 void read_line(); // read into line buffer
@@ -30,6 +30,5 @@ void eval(); // evaluate tokens and call builtin/exec
 void launch_process();
 void free_memory(); // free allocated memory
 bool launch_in_background(); // check if line ends with `&` (background job), AND remove if present
-
 
 #endif

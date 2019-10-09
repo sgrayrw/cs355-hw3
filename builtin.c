@@ -2,11 +2,6 @@
 #include "job.h"
 #include "mysh.h"
 
-#define SUCCESS 1
-#define FAILURE 0
-#define TRUE 1
-#define FALSE 0
-
 struct Node* bg_jobs;
 struct Job* lastjob;
 char** currenttokens;
@@ -19,10 +14,10 @@ int builtin(char** neededtokens, int argclength){
     length = argclength;
     if (length == 1 && strcmp(currenttokens[0],"jobs")==0){
         my_jobs();
-        return SUCCESS;
+        return true;
     } else if (length == 1 && strcmp(currenttokens[0],"exit")==0) {
         my_exit();
-        return SUCCESS;
+        return true;
     } else if (strcmp(currenttokens[0],"kill")==0 && length > 1) {
         int argc_length = length;
         if (strcmp(currenttokens[length - 1], "-9") == 0 && length > 2) {
@@ -30,26 +25,26 @@ int builtin(char** neededtokens, int argclength){
         }
         for (int i = 1; i < argc_length-1; i++) {
             if (currenttokens[i][0] != '%' || (strlen(currenttokens[i]) > 1 && atoi(currenttokens[i] + 1) == 0)) {
-                return FAILURE;
+                return false;
             }
         }
         my_kill();
-        return SUCCESS;
+        return true;
     } else if (length > 1){
         for (int i = 1; i < length-1; i++) {
             if (currenttokens[i][0] != '%' || (strlen(currenttokens[i]) > 1 && atoi(currenttokens[i] + 1) == 0)) {
-                return FAILURE;
+                return false;
             }
         }
         if (strcmp(currenttokens[0],"bg")==0){
             my_bg();
-            return SUCCESS;
+            return true;
         } else if (strcmp(currenttokens[0],"fg")==0) {
             my_fg();
-            return SUCCESS;
+            return true;
         }
     }
-    return FAILURE;
+    return false;
 }
 
 void my_jobs(){
@@ -83,7 +78,7 @@ void my_exit(){
 }
 
 void my_kill(){
-    int lastjob_done = FALSE;
+    int lastjob_done = false;
     int CURRENTSIG=SIGTERM;
     struct Job* currentjob;
     int currentpid;
@@ -92,10 +87,10 @@ void my_kill(){
     }
     for (int i = 1; i<length-1;i++){
         if (strcmp(currenttokens[i],"%")==0){
-            if (lastjob_done == TRUE){
+            if (lastjob_done == true){
                 continue;
             }
-            lastjob_done = TRUE;
+            lastjob_done = true;
             getlastjob();
             currentpid = lastjob->pid;
         }else{
@@ -139,16 +134,16 @@ void my_fg(){
 }
 
 void my_bg(){
-    int lastjob_done = FALSE;
+    int lastjob_done = false;
     struct Job* currentjob;
     int jobid;
     int currentpid;
     for (int i = 1; i<length;i++){
         if (strcmp(currenttokens[i],"%")==0){
-            if (lastjob_done == TRUE){
+            if (lastjob_done == true){
                 continue;
             }
-            lastjob_done = TRUE;
+            lastjob_done = true;
             getlastjob();
             currentpid = lastjob->pid;
         }else {

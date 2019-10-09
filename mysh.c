@@ -71,6 +71,7 @@ int next_token_length(int position) {
 
 void eval() {
     int i, start_pos = 0, end_pos;
+    bool background;
     for (i = 0; i < n; i++) {
         if (strcmp(tokens[i], ";") == 0) {
             if (i > start_pos) {
@@ -79,7 +80,16 @@ void eval() {
                 args = malloc(sizeof(char *) * (argc + 1));
                 memcpy(args, &tokens[start_pos], sizeof(char *) * argc);
                 args[argc + 1] = NULL;
-                launch_process();
+                if (strcmp(args[argc - 1], "&") == 0) {
+                    argc--;
+                    free(args[argc]);
+                    args[argc] = NULL;
+                    args = realloc(args, sizeof(char *) * (argc + 1));
+                    background = true;
+                } else {
+                    background = false;
+                }
+                launch_process(background);
                 free_args();
             }
             start_pos = i + 1;
@@ -87,23 +97,12 @@ void eval() {
     }
 }
 
-void launch_process() {
+void launch_process(bool background) {
     int i;
     pid_t pid;
     struct termios tc_attr;
-    bool background;
 
     builtin();
-
-    if (strcmp(args[argc - 1], "&") == 0) {
-        argc--;
-        free(args[argc]);
-        args[argc] = NULL;
-        args = realloc(args, sizeof(char *) * (argc + 1));
-        background = true;
-    } else {
-        background = false;
-    }
 
     pid = fork();
 

@@ -12,31 +12,17 @@ void getlastjob();
 int builtin(char** neededtokens, int argclength){
     currenttokens = neededtokens;
     length = argclength;
-    if (length == 1 && strcmp(currenttokens[0],"jobs")==0){
-        my_jobs();
-        return true;
-    } else if (length == 1 && strcmp(currenttokens[0],"exit")==0) {
-        my_exit();
-        return true;
-    } else if (strcmp(currenttokens[0],"kill")==0 && length > 1) {
-        int argc_length = length;
-        if (strcmp(currenttokens[length - 1], "-9") == 0 && length > 2) {
-            argc_length--;
-        }
-        for (int i = 1; i < argc_length-1; i++) {
-            if (currenttokens[i][0] != '%' || (strlen(currenttokens[i]) > 1 && atoi(currenttokens[i] + 1) == 0)) {
-                return false;
-            }
-        }
-        my_kill();
-        return true;
-    } else if (length > 1){
-        for (int i = 1; i < length-1; i++) {
-            if (currenttokens[i][0] != '%' || (strlen(currenttokens[i]) > 1 && atoi(currenttokens[i] + 1) == 0)) {
-                return false;
-            }
-        }
-        if (strcmp(currenttokens[0],"bg")==0){
+    if (length > 0 ){
+        if (strcmp(currenttokens[0],"jobs")==0){
+            my_jobs();
+            return true;
+        } else if (strcmp(currenttokens[0],"exit")==0) {
+            my_exit();
+            return true;
+        } else if (strcmp(currenttokens[0],"kill")==0) {
+            my_kill();
+            return true;
+        } else if (strcmp(currenttokens[0],"bg")==0) {
             my_bg();
             return true;
         } else if (strcmp(currenttokens[0],"fg")==0) {
@@ -78,14 +64,29 @@ void my_exit(){
 }
 
 void my_kill(){
+    if (length == 1){
+        printf("not enough arguments\n");
+        return;
+    }
+
+    int argc_length = length;
     int lastjob_done = false;
     int CURRENTSIG=SIGTERM;
     struct Job* currentjob;
     int currentpid;
+    int jobid;
+
     if (strcmp(currenttokens[length-1],"-9")==0){
         CURRENTSIG = SIGKILL;
+        argc_length --;
     }
-    for (int i = 1; i<length-1;i++){
+
+    for (int i = 1; i<argc_length-1;i++){
+        if (currenttokens[i][0] != '%'){
+            printf("kill: illegal argument: %s\n",currenttokens[i]);
+            return;
+        }
+
         if (strcmp(currenttokens[i],"%")==0){
             if (lastjob_done == true){
                 continue;
@@ -94,9 +95,12 @@ void my_kill(){
             getlastjob();
             currentpid = lastjob->pid;
         }else{
-            int jobid = atoi(currenttokens[i]+1);
+            if ((jobid = atoi(currenttokens[i]+1))==0){
+                printf("kill: illegal pid: %s\n", currenttokens[i]);
+                return;
+            };
             if(get_job(jobid)==NULL){
-                printf("Invalid Job ID\n");
+                printf("kill: no such job: %s\n", currenttokens[i]);
                 return;
             }else{
                 currentjob = get_job(jobid);
@@ -110,14 +114,20 @@ void my_kill(){
 
 void my_fg(){
     int currentpid;
+    int jobid;
     struct Job *currentjob;
-    if (strcmp(currenttokens[1],"%")==0){
+    if (length == 1 || strcmp(currenttokens[1],"%")==0){
         getlastjob();
         currentjob = lastjob;
-    }else {
-        int jobid = atoi(currenttokens[1] + 1);
+    } else if (currenttokens[1][0] != '%'){
+        printf("fg: illegal argument: %s\n",currenttokens[1]);
+        return;
+    } else {
+        if ((jobid = atoi(currenttokens[1] + 1))==0){
+            printf("fg: illegal pid: %s\n", currenttokens[1]);
+        }
         if (get_job(jobid) == NULL) {
-            printf("Invalid Job ID\n");
+            printf("fg: no such job: %s\n", currenttokens[1]);
             return;
         } else {
             currentjob = get_job(jobid);
@@ -138,7 +148,18 @@ void my_bg(){
     struct Job* currentjob;
     int jobid;
     int currentpid;
+
+    if (length == 1){
+        getlastjob();
+        currentpid = lastjob->pid;
+        kill(currentpid,SIGCONT);
+    }
+
     for (int i = 1; i<length;i++){
+        if (currenttokens[i][0] != '%') {
+            printf("bg: illegal argument: %s\n", currenttokens[i]);
+            return;
+        }
         if (strcmp(currenttokens[i],"%")==0){
             if (lastjob_done == true){
                 continue;
@@ -147,9 +168,11 @@ void my_bg(){
             getlastjob();
             currentpid = lastjob->pid;
         }else {
-            jobid = atoi(currenttokens[i] + 1);
+            if((jobid = atoi(currenttokens[i] + 1))==0){
+                printf("bg: illegal pid: %s\n", currenttokens[i]);
+            }
             if (get_job(jobid) == NULL) {
-                printf("Invalid Job ID\n");
+                printf("bg: no such job: %s\n", currenttokens[i]);
                 return;
             } else {
                 currentjob = get_job(jobid);

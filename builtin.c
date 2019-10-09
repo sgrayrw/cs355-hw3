@@ -51,8 +51,12 @@ void my_jobs(){
         }else{
             statusstr = "Suspended";
         }
-        arguement = currentjob -> args;
-        printf("[%d]   %s    %s\n",jobid,statusstr,arguement);
+        printf("[%d]   %s    ",jobid,statusstr);
+        for (int i = 0; i<currentjob->argc; i++){
+            arguement = currentjob -> args[i];
+            printf("%s ",arguement);
+        }
+        printf("\n");
         currentjobs = currentjobs->next;
     }
 }

@@ -9,7 +9,7 @@
 #include "mysh.h"
 
 // builtin functions
-int builtin();
+int builtin(char** neededtokens, int argclength);
 void my_exit();
 void my_jobs(); // list all background jobs
 void my_kill(); // kill a background job

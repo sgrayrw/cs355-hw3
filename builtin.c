@@ -1,47 +1,66 @@
 #include "builtin.h"
-struct Node* currentjobs = jobs;
-char** currenttokens = tokens;
-int length = argc;
+
+#define SUCCESS 1
+#define FAILURE 0
+#define TRUE 1
+#define FALSE 0
 
 
-int builtin(){
-    int response = 0;
-    if (length == 1 && strcmp(tokens[0],"jobs")==0){
+struct Node* bg_jobs = jobs;
+struct Job* lastjob;
+char** currenttokens;
+int length;
+
+void getlastjob();
+
+int builtin(char** neededtokens, int argclength){
+    currenttokens = neededtokens;
+    length = argclength;
+    if (length == 1 && strcmp(currenttokens[0],"jobs")==0){
         my_jobs();
-        return 1;
-    } else if (length == 1 && strcmp(tokens[0],"exit")==0){
+        return SUCCESS;
+    } else if (length == 1 && strcmp(currenttokens[0],"exit")==0) {
         my_exit();
-        return 1;
-    } else if (length > 1) {
-        for (int i = 1; i < length; i++) {
-            if (tokens[i][0] != '%' || atoi(tokens[i] + 1) == 0) {
-                return response;
+        return SUCCESS;
+    } else if (strcmp(currenttokens[0],"kill")==0 && length > 1) {
+        int argc_length = length;
+        if (strcmp(currenttokens[length - 1], "-9") == 0 && length > 2) {
+            argc_length--;
+        }
+        for (int i = 1; i < argc_length-1; i++) {
+            if (currenttokens[i][0] != '%' || (strlen(currenttokens[i]) > 1 && atoi(currenttokens[i] + 1) == 0)) {
+                return FAILURE;
             }
         }
-
-        if (strcmp(tokens[0],"kill")==0){
-            my_kill();
-            return 1;
-        } else if (strcmp(tokens[0],"bg")==0){
+        my_kill();
+        return SUCCESS;
+    } else if (length > 1){
+        for (int i = 1; i < length-1; i++) {
+            if (currenttokens[i][0] != '%' || (strlen(currenttokens[i]) > 1 && atoi(currenttokens[i] + 1) == 0)) {
+                return FAILURE;
+            }
+        }
+        if (strcmp(currenttokens[0],"bg")==0){
             my_bg();
-            return 1;
-        } else if (strcmp(tokens[0],"fg")==0) {
+            return SUCCESS;
+        } else if (strcmp(currenttokens[0],"fg")==0) {
             my_fg();
-            return 1;
+            return SUCCESS;
         }
     }
-    return response;
+    return FAILURE;
 }
 
 void my_jobs(){
 
+    struct Node* currentjobs = bg_jobs;
     struct Job* currentjob;
     int jobidl;
     enum Status currentstatus;
     char* statusstr;
     char* argument;
 
-    while(currentjob){
+    while(currentjobs){
         currentjob = currentjobs->job;
         jobid = currentjob->jid;
         currentstatus = currentjob -> status;
@@ -63,31 +82,49 @@ void my_exit(){
 }
 
 void my_kill(){
+    int lastjob_done = FALSE;
     int CURRENTSIG=SIGTERM;
     struct Job* currentjob;
-    if (strcmp(tokens[length-1],"-9")==0){
+    int currentpid;
+    if (strcmp(currenttokens[length-1],"-9")==0){
         CURRENTSIG = SIGKILL;
     }
     for (int i = 1; i<length-1;i++){
-        int jobid = atoi(currenttokens[i]+1);
-        if(get_job(jobid)==NULL){
-            printf("Invalid Job ID\n")
+        if (strcmp(currenttokens[i],"%")==0){
+            if (lastjob_done == TRUE){
+                continue;
+            }
+            lastjob_done = TRUE;
+            getlastjob();
+            currentpid = lastjob->pid;
         }else{
-            currentjob = get_job(jobid);
+            int jobid = atoi(currenttokens[i]+1);
+            if(get_job(jobid)==NULL){
+                printf("Invalid Job ID\n")
+            }else{
+                currentjob = get_job(jobid);
+            }
+            currentpid = currentjob->pid;
         }
-        int currentpid = currentjob->pid;
+
         kill(currentpid,CURRENTSIG);
     }
 }
 
 void my_fg(){
-    int jobid = atoi(currenttokens[1]+1);
-    if(get_job(jobid)==NULL){
-        printf("Invalid Job ID\n");
-    }else{
-        struct Job* currentjob = get_job(jobid);
-    };
-    int currentpid = currentjob->pid;
+    int currentpid;
+    if (strcmp(currenttokens[1],"%")==0){
+        getlastjob();
+        currentpid = lastjob->pid;
+    }else {
+        int jobid = atoi(currenttokens[1] + 1);
+        if (get_job(jobid) == NULL) {
+            printf("Invalid Job ID\n");
+        } else {
+            struct Job *currentjob = get_job(jobid);
+        };
+        currentpid = currentjob->pid;
+    }
     struct termios* currenttermios = currentjob->tcattr;
     int statusnum;
     int* status = &statusnum;
@@ -98,16 +135,35 @@ void my_fg(){
 }
 
 void my_bg(){
+    int lastjob_done == FALSE;
     struct Job* currentjob;
     int jobid;
+    int currentpid;
     for (int i = 1; i<length;i++){
-        jobid = atoi(currenttokens[i]+1);
-        if(get_job(jobid)==NULL){
-            printf("Invalid Job ID\n")
-        }else{
-            currentjob = get_job(jobid);
+        if (strcmp(currenttokens[i],"%")==0){
+            if (lastjob_done == TRUE){
+                continue;
+            }
+            lastjob_done = TRUE;
+            getlastjob();
+            currentpid = lastjob->pid;
+        }else {
+            jobid = atoi(currenttokens[i] + 1);
+            if (get_job(jobid) == NULL) {
+                printf("Invalid Job ID\n")
+            } else {
+                currentjob = get_job(jobid);
+            }
+            currentpid = currentjob->pid;
         }
-        int currentpid = currentjob->pid;
         kill(currentpid,SIGCONT);
     }
+}
+
+void getlastjob(){
+    struct Node* currentjobs = bg_jobs;
+    while (currentjobs->next){
+        currentjobs = currentjobs->next;
+    }
+    lastjob = currentjobs->job;
 }

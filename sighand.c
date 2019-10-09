@@ -47,7 +47,7 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
                 tcgetattr(STDIN_FILENO, &child_tc);
                 tcsetpgrp(getpgid());
                 tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
-                add_job(child, Suspended, args, &child_tc);
+                //TODO add_job(child, Suspended, , &child_tc);
             } else {
                 change_job_status(child, Suspended);
             }

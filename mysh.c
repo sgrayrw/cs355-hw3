@@ -3,12 +3,11 @@
 #define DELIMITERS "& \f\n\r\t\v"
 
 int main() {
-    struct termios mysh_tc;
     initialize_handlers(); // register for signal handlers
     tcgetattr(STDIN_FILENO, &mysh_tc);
 
     while (true) {
-        tcsetattr(stdin, TCSADRAIN, &mysh_tc);
+        tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
         read_line(); // read into line buffer
         parse_line(); // parse arguments
         eval(); // evaluate arguments
@@ -71,8 +70,8 @@ int next_token_length(int position) {
 }
 
 void eval() {
+    // call builtin OR exec child
     builtin();
-
     launch_process();
 }
 

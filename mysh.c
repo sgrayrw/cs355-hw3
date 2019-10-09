@@ -1,6 +1,6 @@
 #include "mysh.h"
 
-#define DELIMITERS "& \f\n\r\t\v"
+#define DELIMITERS ";& \f\n\r\t\v"
 
 int main() {
     initialize_handlers(); // register for signal handlers
@@ -51,7 +51,7 @@ void parse_line() {
         position += length;
     }
     tokens[n] = NULL;
-    argc = n;
+    tokens_len = n;
 }
 
 int next_token_length(int position) {
@@ -70,22 +70,49 @@ int next_token_length(int position) {
 }
 
 void eval() {
-    builtin();
-
-    launch_process();
+    int i, start_pos = 0, end_pos;
+    for (i = 0; i < n; i++) {
+        if (strcmp(tokens[i], ";") == 0) {
+            if (i > start_pos) {
+                end_pos = i - 1;
+                argc = end_pos - start_pos + 1;
+                args = malloc(sizeof(char *) * (argc + 1));
+                memcpy(args, &tokens[start_pos], sizeof(char *) * argc);
+                args[argc + 1] = NULL;
+                launch_process();
+                free_args();
+            }
+            start_pos = i + 1;
+        }
+    }
 }
 
 void launch_process() {
     int i;
-    pid_t pid = fork();
+    pid_t pid;
     struct termios tc_attr;
-    bool background = launch_in_background();
+    bool background;
+
+    builtin();
+
+    if (strcmp(args[argc - 1], "&") == 0) {
+        argc--;
+        free(args[argc]);
+        args[argc] = NULL;
+        args = realloc(args, sizeof(char *) * (argc + 1));
+        background = true;
+    } else {
+        background = false;
+    }
+
+    pid = fork();
+
     if (pid == 0) { // child
         for (i = SIG_MIN; i < NSIG; i++) {
             signal(i, SIG_DFL);
         }
         setpgrp();
-        if (execvp(tokens[0], tokens) == -1) {
+        if (execvp(args[0], args) == -1) {
             if (errno == ENOENT) {
                 fprintf(stderr, "No such file or directory.\n");
             } else {
@@ -96,7 +123,7 @@ void launch_process() {
     } else if (pid > 0) { // parent
         setpgid(pid, pid);
         if (background) {
-            add_job(pid, Running, tokens, &mysh_tc);
+            add_job(pid, Running, args, &mysh_tc);
         } else {
             tcsetpgrp(STDIN_FILENO, pid);
             int status;
@@ -107,20 +134,9 @@ void launch_process() {
     }
 }
 
-bool launch_in_background() {
-    if (strcmp(tokens[argc - 1], "&") == 0) {
-        argc--;
-        free(tokens[argc]);
-        tokens = realloc(tokens, sizeof(char *) * (argc + 1));
-        return true;
-    } else {
-        return false;
-    }
-}
-
 void free_tokens() {
     int i;
-    for (i = 0; i < argc; i++) {
+    for (i = 0; i < tokens_len; i++) {
         free(tokens[i]);
         tokens[i] = NULL;
     }
@@ -128,4 +144,14 @@ void free_tokens() {
     tokens = NULL;
     free(line);
     line = NULL;
+}
+
+void free_args() {
+    int i;
+    for (i = 0; i < argc; i++) {
+        free(args[i]);
+        args[i] = NULL;
+    }
+    free(args);
+    args = NULL;
 }

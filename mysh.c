@@ -11,8 +11,9 @@ int main() {
         read_line(); // read into line buffer
         parse_line(); // parse arguments
         eval(); // evaluate arguments
-//        free_tokens(); // free spaces
     }
+    free_args();
+    free_tokens();
 }
 
 void read_line() {
@@ -93,7 +94,6 @@ void eval() {
                     background = false;
                 }
                 launch_process(background);
-                free_args();
             }
             start_pos = i + 1;
         }

@@ -87,9 +87,7 @@ void eval() {
                 args[argc + 1] = NULL;
                 if (strcmp(args[argc - 1], "&") == 0) {
                     argc--;
-                    free(args[argc]);
                     args[argc] = NULL;
-                    args = realloc(args, sizeof(char *) * (argc + 1));
                     background = true;
                 } else {
                     background = false;

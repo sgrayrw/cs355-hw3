@@ -55,10 +55,10 @@ void my_jobs(){
 
     struct Node* currentjobs = bg_jobs;
     struct Job* currentjob;
-    int jobidl;
+    int jobid;
     enum Status currentstatus;
     char* statusstr;
-    char* argument;
+    char* arguement;
 
     while(currentjobs){
         currentjob = currentjobs->job;
@@ -69,7 +69,7 @@ void my_jobs(){
         }else{
             statusstr = "Suspended";
         }
-        argument = currentjob -> args;
+        arguement = currentjob -> args;
         printf("[%d]   %s    %s\n",jobid,statusstr,arguement);
         currentjobs = currentjobs->next;
     }
@@ -101,6 +101,7 @@ void my_kill(){
             int jobid = atoi(currenttokens[i]+1);
             if(get_job(jobid)==NULL){
                 printf("Invalid Job ID\n")
+                return;
             }else{
                 currentjob = get_job(jobid);
             }
@@ -113,18 +114,20 @@ void my_kill(){
 
 void my_fg(){
     int currentpid;
+    struct Job *currentjob;
     if (strcmp(currenttokens[1],"%")==0){
         getlastjob();
-        currentpid = lastjob->pid;
+        currentjob = lastjob;
     }else {
         int jobid = atoi(currenttokens[1] + 1);
         if (get_job(jobid) == NULL) {
             printf("Invalid Job ID\n");
+            return;
         } else {
-            struct Job *currentjob = get_job(jobid);
-        };
-        currentpid = currentjob->pid;
+            currentjob = get_job(jobid);
+        }
     }
+    currentpid = currentjob->pid;
     struct termios* currenttermios = currentjob->tcattr;
     int statusnum;
     int* status = &statusnum;
@@ -135,7 +138,7 @@ void my_fg(){
 }
 
 void my_bg(){
-    int lastjob_done == FALSE;
+    int lastjob_done = FALSE;
     struct Job* currentjob;
     int jobid;
     int currentpid;
@@ -150,7 +153,8 @@ void my_bg(){
         }else {
             jobid = atoi(currenttokens[i] + 1);
             if (get_job(jobid) == NULL) {
-                printf("Invalid Job ID\n")
+                printf("Invalid Job ID\n");
+                return;
             } else {
                 currentjob = get_job(jobid);
             }

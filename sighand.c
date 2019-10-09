@@ -52,7 +52,11 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
                 change_job_status(child, Suspended);
             }
         case CLD_CONTINUED:
-            change_job_status(child, Running);
+            if (tcgetpgrp() = getpgid(child)) {
+                remove_job(child);
+            } else {
+                change_job_status(child, Running);
+            }
         default:
             ; //nothing
     }

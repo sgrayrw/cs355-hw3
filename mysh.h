@@ -27,8 +27,9 @@ void read_line(); // read into line buffer
 void parse_line(); // parse arguments with delimiters
 int next_token_length(int); // helper function for parse_line()
 void eval(); // evaluate tokens and call builtin/exec
+void builtin();
 void launch_process();
-void free_memory(); // free allocated memory
+void free_tokens();
 bool launch_in_background(); // check if line ends with `&` (background job), AND remove if present
 
 

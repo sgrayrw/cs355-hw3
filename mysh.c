@@ -11,7 +11,7 @@ int main() {
         read_line(); // read into line buffer
         parse_line(); // parse arguments
         eval(); // evaluate arguments
-        free_memory(); // free spaces
+        free_tokens(); // free spaces
     }
 }
 
@@ -91,7 +91,6 @@ void launch_process() {
             } else {
                 fprintf(stderr, "%s: command not found.\n", tokens[0]);
             }
-            free_memory();
             exit(EXIT_FAILURE);
         }
     } else if (pid > 0) { // parent
@@ -110,11 +109,23 @@ void launch_process() {
 
 bool launch_in_background() {
     if (strcmp(tokens[argc - 1], "&") == 0) {
-        tokens[argc - 1] = realloc(tokens[argc - 1], sizeof(char));
-        tokens[argc - 1][0] = '\0';
+        argc--;
         free(tokens[argc]);
+        tokens = realloc(tokens, sizeof(char *) * (argc + 1));
         return true;
     } else {
         return false;
     }
+}
+
+void free_tokens() {
+    int i;
+    for (i = 0; i < argc; i++) {
+        free(tokens[i]);
+        tokens[i] = NULL;
+    }
+    free(tokens);
+    tokens = NULL;
+    free(line);
+    line = NULL;
 }

@@ -10,7 +10,7 @@ struct Job* get_job(int jid) {
     return NULL;
 }
 
-void add_job(pid_t pid, Status status, char* args, struct termios* tcattr) {
+void add_job(pid_t pid, Status status, int _argc, char** args, struct termios* tcattr) {
     struct Job* job = malloc(sizeof(struct Job));
     if (jobs == NULL) {
         job->jid = 1;
@@ -19,8 +19,12 @@ void add_job(pid_t pid, Status status, char* args, struct termios* tcattr) {
     }
     job->pid = pid;
     job->status = status;
-    job->args = malloc(strlen(args) + 1);
-    strcpy(job->args, args);
+    job->argc = _argc;
+    job->args = malloc(sizeof(char*) * _argc);
+    for (int i = 0; i < _argc; ++i) {
+        job->args[i] = malloc(strlen(args[i]) + 1);
+        strcpy(job->args[i], args[i]);
+    }
     job->tcattr = malloc(sizeof(struct termios));
     memcpy(job->tcattr, tcattr, sizeof(struct termios));
 
@@ -65,10 +69,15 @@ int remove_job(pid_t pid) {
     }
 }
 
-void change_job_status(pid_t pid, Status status) {
+void change_job_status(pid_t pid, Status status, struct termios* tcattr) {
     for (struct Node* node = jobs; node; node = node->next) {
         if (node->job->pid == pid) {
             node->job->status = status;
+            if (tcattr) {
+                free(node->job->tcattr);
+                node->job->tcattr = malloc(sizeof(struct termios));
+                memcpy(node->job->tcattr, tcattr, sizeof(struct termios));
+            }
         }
     }
 }
@@ -76,6 +85,10 @@ void change_job_status(pid_t pid, Status status) {
 void free_node(struct Node* node) {
     free(node->job->tcattr);
     node->job->tcattr = NULL;
+    for (int i = 0; i < node->job->argc; ++i) {
+        free(node->job->args[i]);
+        node->job->args[i] = NULL;
+    }
     free(node->job->args);
     node->job->args = NULL;
     free(node->job);

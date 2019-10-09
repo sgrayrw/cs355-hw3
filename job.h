@@ -15,7 +15,8 @@ struct Job {
     int jid; // job id
     pid_t pid;
     Status status;
-    char* args; // args that started the job
+    int argc;
+    char** args; // args that started the job
     struct termios* tcattr;
 };
 
@@ -28,9 +29,9 @@ struct Node {
 extern struct Node* jobs;
 
 struct Job* get_job(int jid);
-void add_job(pid_t pid, Status status, char* args, struct termios* tcattr);
+void add_job(pid_t pid, Status status, int argc, char** args, struct termios* tcattr);
 int remove_job(pid_t pid);
-void change_job_status(pid_t pid, Status status);
+void change_job_status(pid_t pid, Status status, struct termios* tcattr);
 void free_node(struct Node* node);
 void free_list();
 

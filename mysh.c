@@ -8,7 +8,6 @@ int main() {
     tcgetattr(STDIN_FILENO, &mysh_tc);
 
     while (true) {
-        tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
         read_line(); // read into line buffer
         parse_line(); // parse arguments
         eval(); // evaluate arguments
@@ -151,10 +150,7 @@ void free_tokens() {
         free(tokens);
         tokens = NULL;
     }
-    if (line != NULL) {
-        free(line);
-        line = NULL;
-    }
+    free(line);
 }
 
 void free_args() {

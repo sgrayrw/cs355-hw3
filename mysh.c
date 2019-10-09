@@ -74,10 +74,14 @@ void eval() {
     int i, start_pos = 0, end_pos;
     bool background, is_semicolon;
     for (i = 0; i < tokens_len; i++) {
-        is_semicolon = strcmp(tokens[i], ";") == 0
+        is_semicolon = strcmp(tokens[i], ";") == 0;
         if (is_semicolon || i == tokens_len - 1) {
             if (i == tokens_len - 1 && !is_semicolon || i > start_pos) {
-                end_pos = i - 1;
+                if (i == tokens_len - 1 && !is_semicolon){
+                    end_pos = i;
+                } else {
+                    end_pos = i - 1;
+                }
                 argc = end_pos - start_pos + 1;
                 args = malloc(sizeof(char *) * (argc + 1));
                 memcpy(args, &tokens[start_pos], sizeof(char *) * argc);

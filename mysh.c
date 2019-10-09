@@ -11,7 +11,7 @@ int main() {
         read_line(); // read into line buffer
         parse_line(); // parse arguments
         eval(); // evaluate arguments
-        free_tokens(); // free spaces
+//        free_tokens(); // free spaces
     }
 }
 
@@ -132,6 +132,8 @@ void launch_process(bool background) {
         if (!background) {
             tcsetpgrp(STDIN_FILENO, pid);
             waitpid(pid, &status, WUNTRACED);
+            tcsetpgrp(STDIN_FILENO, getpgrp());
+            tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
         }
     } else {
         fprintf(stderr, "Error forking a process.\n");

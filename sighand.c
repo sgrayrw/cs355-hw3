@@ -40,10 +40,11 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
                 tcsetpgrp(STDIN_FILENO, getpgrp());
                 tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
                 remove_job(child);
+            }
         case CLD_STOPPED:
             if (tcgetpgrp(STDIN_FILENO) == getpgid(child)) {
                 tcgetattr(STDIN_FILENO, &child_tc);
-                tcsetpgrp(STDIN_FILENO, getpgid(STDIN_FILENO));
+                tcsetpgrp(STDIN_FILENO, getpgrp());
                 tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
                 change_job_status(child, Suspended, &child_tc);
             } else {

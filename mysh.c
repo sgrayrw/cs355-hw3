@@ -73,7 +73,7 @@ int next_token_length(int position) {
 void eval() {
     int i, start_pos = 0, end_pos;
     bool background;
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < tokens_len; i++) {
         if (strcmp(tokens[i], ";") == 0) {
             if (i > start_pos) {
                 end_pos = i - 1;
@@ -103,7 +103,7 @@ void launch_process(bool background) {
     pid_t pid;
     struct termios tc_attr;
 
-    if (builtin() == true) {
+    if (builtin(args, argc) == true) {
         return;
     }
 

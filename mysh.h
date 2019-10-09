@@ -16,9 +16,9 @@
 #include <stdio.h>
 
 // global vars
-char* line; // dynamically allocated in read_line()
-char** tokens; // dynamically allocated in parse_line()
-int argc;
+char *line; // dynamically allocated in read_line()
+char **tokens, **args; // dynamically allocated in parse_line()
+int argc, tokens_len;
 struct Node* jobs;
 struct termios mysh_tc;
 
@@ -27,7 +27,6 @@ void read_line(); // read into line buffer
 void parse_line(); // parse arguments with delimiters
 int next_token_length(int); // helper function for parse_line()
 void eval(); // evaluate tokens and call builtin/exec
-void builtin();
 void launch_process(bool);
 void free_tokens();
 void free_args();

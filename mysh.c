@@ -18,7 +18,7 @@ int main() {
 
 void read_line() {
     size_t n = 0;
-    printf("[mysh]$ ");
+    printf("mysh ❯ ");
     if (getline(&line, &n, stdin) == -1) {
         if (feof(stdin)) {
             my_exit();

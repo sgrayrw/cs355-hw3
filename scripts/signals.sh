@@ -14,4 +14,5 @@ echo "sending SIGTTOU"
 kill -SIGTTOU $myshpid
 echo "sending SIGINT (expected to print a new line)"
 kill -SIGINT $myshpid
+
 echo "mysh survived signals!!!"

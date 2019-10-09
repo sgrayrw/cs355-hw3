@@ -4,12 +4,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "job.h"
-#include "mysh.h"
+#include <stdbool.h>
 
 // builtin functions
-void builtin();
+int builtin(char** neededtokens, int argclength);
 void my_exit();
 void my_jobs(); // list all background jobs
 void my_kill(); // kill a background job

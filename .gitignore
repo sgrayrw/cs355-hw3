@@ -1,6 +1,5 @@
 # editors
 .idea/
-cmake*
 
 # temp files
 .DS_Store

@@ -25,6 +25,8 @@ struct Node {
     struct Node* next;
 };
 
+extern struct Node* jobs;
+
 struct Job* get_job(int jid);
 void add_job(pid_t pid, Status status, char* args, struct termios* tcattr);
 int remove_job(pid_t pid);

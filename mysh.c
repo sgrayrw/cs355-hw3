@@ -3,6 +3,7 @@
 #define DELIMITERS ";& \f\n\r\t\v"
 
 int main() {
+    jobs = NULL;
     initialize_handlers(); // register for signal handlers
     tcgetattr(STDIN_FILENO, &mysh_tc);
 
@@ -17,7 +18,7 @@ int main() {
 
 void read_line() {
     size_t n = 0;
-    printf("[mysh]$ ");
+    printf("mysh ❯ ");
     if (getline(&line, &n, stdin) == -1) {
         if (feof(stdin)) {
             my_exit();
@@ -122,7 +123,7 @@ void launch_process(bool background) {
     } else if (pid > 0) { // parent
         setpgid(pid, pid);
         if (background) {
-            add_job(pid, Running, args, &mysh_tc);
+            add_job(pid, Running, argc, args, &mysh_tc);
         } else {
             tcsetpgrp(STDIN_FILENO, pid);
             int status;

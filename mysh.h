@@ -17,10 +17,10 @@
 
 // global vars
 char* line; // dynamically allocated in read_line()
-char** tokens, args; // dynamically allocated in parse_line()
-int tokens_len, argc;
-extern struct Node *jobs;
-extern struct termios mysh_tc;
+char** tokens; // dynamically allocated in parse_line()
+int argc;
+struct Node* jobs;
+struct termios mysh_tc;
 
 // main loop
 void read_line(); // read into line buffer
@@ -31,6 +31,5 @@ void builtin();
 void launch_process(bool);
 void free_tokens();
 void free_args();
-
 
 #endif

@@ -71,7 +71,7 @@ int next_token_length(int position) {
 
 void eval() {
     // call builtin OR exec child
-    builtin();
+//    builtin();
     launch_process();
 }
 
@@ -97,7 +97,7 @@ void launch_process() {
     } else if (pid > 0) { // parent
         setpgid(pid, pid);
         if (background) {
-            add_job(pid, Running, tokens, &mysh_tc);
+            add_job(pid, Running, line, &mysh_tc);
         } else {
             tcsetpgrp(STDIN_FILENO, pid);
             int status;

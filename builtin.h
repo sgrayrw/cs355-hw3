@@ -5,9 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "job.h"
-#include "mysh.h"
-
 // builtin functions
 int builtin(char** neededtokens, int argclength);
 void my_exit();

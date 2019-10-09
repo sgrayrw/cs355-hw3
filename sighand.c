@@ -30,30 +30,30 @@ void sigint_handler(int sig) {
 }
 
 void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
-    struct termios child_tc;
-    pid_t child = info->si_pid;
-    int status;
-    switch (info->si_code) {
-        case CLD_EXITED: case CLD_KILLED: case CLD_DUMPED:
-            if (tcgetpgrp() = getpgid(child)) {
-                tcsetpgrp(getpgid());
-                tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
-            } else {
-                remove_job(child);
-            }
-            waitpid(info->si_pid, &status, 0);
-        case CLD_STOPPED:
-            if (tcgetpgrp() = getpgid(child)) {
-                tcgetattr(STDIN_FILENO, &child_tc);
-                tcsetpgrp(getpgid());
-                tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
-                add_job(child, Suspended, tokens, &child_tc);
-            } else {
-                change_job_status(child, Suspended);
-            }
-        case CLD_CONTINUED:
-            change_job_status(child, Running);
-        default:
-            ; //nothing
-    }
+//    struct termios child_tc;
+//    pid_t child = info->si_pid;
+//    int status;
+//    switch (info->si_code) {
+//        case CLD_EXITED: case CLD_KILLED: case CLD_DUMPED:
+//            if (tcgetpgrp() = getpgid(child)) {
+//                tcsetpgrp(getpgid());
+//                tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
+//            } else {
+//                remove_job(child);
+//            }
+//            waitpid(info->si_pid, &status, 0);
+//        case CLD_STOPPED:
+//            if (tcgetpgrp() = getpgid(child)) {
+//                tcgetattr(STDIN_FILENO, &child_tc);
+//                tcsetpgrp(getpgid());
+//                tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
+//                add_job(child, Suspended, tokens, &child_tc);
+//            } else {
+//                change_job_status(child, Suspended);
+//            }
+//        case CLD_CONTINUED:
+//            change_job_status(child, Running);
+//        default:
+//            ; //nothing
+//    }
 }

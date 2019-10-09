@@ -1,12 +1,13 @@
 #include "builtin.h"
+#include "job.h"
+#include "mysh.h"
 
 #define SUCCESS 1
 #define FAILURE 0
 #define TRUE 1
 #define FALSE 0
 
-
-struct Node* bg_jobs = jobs;
+struct Node* bg_jobs;
 struct Job* lastjob;
 char** currenttokens;
 int length;
@@ -52,11 +53,11 @@ int builtin(char** neededtokens, int argclength){
 }
 
 void my_jobs(){
-
+    bg_jobs = jobs;
     struct Node* currentjobs = bg_jobs;
     struct Job* currentjob;
     int jobid;
-    enum Status currentstatus;
+    Status currentstatus;
     char* statusstr;
     char* arguement;
 
@@ -64,7 +65,7 @@ void my_jobs(){
         currentjob = currentjobs->job;
         jobid = currentjob->jid;
         currentstatus = currentjob -> status;
-        if (currentstatus == Status.Running){
+        if (currentstatus == Running){
             statusstr = "Running";
         }else{
             statusstr = "Suspended";
@@ -100,7 +101,7 @@ void my_kill(){
         }else{
             int jobid = atoi(currenttokens[i]+1);
             if(get_job(jobid)==NULL){
-                printf("Invalid Job ID\n")
+                printf("Invalid Job ID\n");
                 return;
             }else{
                 currentjob = get_job(jobid);
@@ -165,6 +166,7 @@ void my_bg(){
 }
 
 void getlastjob(){
+    bg_jobs = jobs;
     struct Node* currentjobs = bg_jobs;
     while (currentjobs->next){
         currentjobs = currentjobs->next;

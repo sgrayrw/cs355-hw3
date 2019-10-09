@@ -35,28 +35,19 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
     int status;
     switch (info->si_code) {
         case CLD_EXITED: case CLD_KILLED: case CLD_DUMPED:
-            if (tcgetpgrp() = getpgid(child)) {
-                tcsetpgrp(getpgid());
-                tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
-            } else {
-                remove_job(child);
-            }
             waitpid(info->si_pid, &status, 0);
+            remove_job(child);
         case CLD_STOPPED:
             if (tcgetpgrp() = getpgid(child)) {
                 tcgetattr(STDIN_FILENO, &child_tc);
                 tcsetpgrp(getpgid());
                 tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
-                //TODO add_job(child, Suspended, , &child_tc);
+                change_job_status(child, Suspended, &child_tc);
             } else {
-                change_job_status(child, Suspended);
+                change_job_status(child, Suspended, NULL);
             }
         case CLD_CONTINUED:
-            if (tcgetpgrp() = getpgid(child)) {
-                remove_job(child);
-            } else {
-                change_job_status(child, Running);
-            }
+            change_job_status(child, Running, NULL);
         default:
             ; //nothing
     }

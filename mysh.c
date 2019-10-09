@@ -99,11 +99,13 @@ void eval() {
 }
 
 void launch_process(bool background) {
-    int i;
+    int i, status;
     pid_t pid;
     struct termios tc_attr;
 
-    builtin();
+    if (builtin() == true) {
+        return;
+    }
 
     pid = fork();
 
@@ -122,11 +124,9 @@ void launch_process(bool background) {
         }
     } else if (pid > 0) { // parent
         setpgid(pid, pid);
-        if (background) {
-            add_job(pid, Running, argc, args, &mysh_tc);
-        } else {
+        add_job(pid, Running, argc, args, &mysh_tc);
+        if (!background) {
             tcsetpgrp(STDIN_FILENO, pid);
-            int status;
             waitpid(pid, &status, WUNTRACED);
         }
     } else {
@@ -136,22 +136,32 @@ void launch_process(bool background) {
 
 void free_tokens() {
     int i;
-    for (i = 0; i < tokens_len; i++) {
-        free(tokens[i]);
-        tokens[i] = NULL;
+    if (tokens != NULL){
+        for (i = 0; i < tokens_len; i++) {
+            if (tokens[i] != NULL) {
+                free(tokens[i]);
+                tokens[i] = NULL;
+            }
+        }
+        free(tokens);
+        tokens = NULL;
     }
-    free(tokens);
-    tokens = NULL;
-    free(line);
-    line = NULL;
+    if (line != NULL) {
+        free(line);
+        line = NULL;
+    }
 }
 
 void free_args() {
     int i;
-    for (i = 0; i < argc; i++) {
-        free(args[i]);
-        args[i] = NULL;
+    if (args != NULL) {
+        for (i = 0; i < argc; i++) {
+            if (args[i] != NULL) {
+                free(args[i]);
+                args[i] = NULL;
+            }
+        }
+        free(args);
+        args = NULL;
     }
-    free(args);
-    args = NULL;
 }

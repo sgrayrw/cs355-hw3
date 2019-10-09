@@ -74,7 +74,7 @@ void eval() {
     int i, start_pos = 0, end_pos;
     bool background;
     for (i = 0; i < tokens_len; i++) {
-        if (strcmp(tokens[i], ";") == 0) {
+        if (strcmp(tokens[i], ";") == 0 || i == tokens_len - 1) {
             if (i > start_pos) {
                 end_pos = i - 1;
                 argc = end_pos - start_pos + 1;

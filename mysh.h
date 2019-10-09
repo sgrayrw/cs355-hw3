@@ -20,6 +20,7 @@ char* line; // dynamically allocated in read_line()
 extern char** tokens; // dynamically allocated in parse_line()
 extern int argc;
 extern struct Node *jobs;
+extern struct termios mysh_tc;
 
 // main loop
 void read_line(); // read into line buffer

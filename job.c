@@ -1,9 +1,18 @@
 #include "job.h"
 #include "mysh.h"
 
-struct Job* get_job(int jid) {
+struct Job* get_job_jid(int jid) {
     for (struct Node* node = jobs; node; node = node->next) {
         if (node->job->jid == jid) {
+            return node->job;
+        }
+    }
+    return NULL;
+}
+
+struct Job* get_job_pid(pid_t pid) {
+    for (struct Node* node = jobs; node; node = node->next) {
+        if (node->job->pid == pid) {
             return node->job;
         }
     }
@@ -27,6 +36,7 @@ void add_job(pid_t pid, Status status, int _argc, char** args, struct termios* t
     }
     job->tcattr = malloc(sizeof(struct termios));
     memcpy(job->tcattr, tcattr, sizeof(struct termios));
+    job->status_changed = false;
 
     struct Node* node = malloc(sizeof(struct Node));
     node->job = job;
@@ -44,6 +54,7 @@ void add_job(pid_t pid, Status status, int _argc, char** args, struct termios* t
         jobs = node;
     }
     sigprocmask(SIG_UNBLOCK, &sigset, NULL);
+    jobcnt++;
 }
 
 int remove_job(pid_t pid) {
@@ -77,7 +88,64 @@ void change_job_status(pid_t pid, Status status, struct termios* tcattr) {
                 free(node->job->tcattr);
                 node->job->tcattr = malloc(sizeof(struct termios));
                 memcpy(node->job->tcattr, tcattr, sizeof(struct termios));
+                node->job->status_changed = true;
             }
+        }
+    }
+}
+
+void unchange_status(pid_t pid) {
+    for (struct Node* node = jobs; node; node = node->next) {
+        if (node->job->pid == pid) {
+            node->job->status_changed = false;
+        }
+    }
+}
+
+void process_changed_jobs(bool print) {
+    struct Job* reverse_job[jobcnt];
+    struct Node* cur = jobs;
+    struct Job* curjob;
+    int i = 0;
+    char* status;
+    while(cur) {
+        curjob = cur->job;
+        reverse_job[i] = curjob;
+        cur = cur -> next;
+        i++;
+    }
+
+    for (int i = jobcnt-1; i>=0; i--){
+        curjob = reverse_job[i];
+        if (!curjob->status_changed) {
+            continue;
+        }
+
+        if (print) {
+            switch (curjob->status) {
+                case Running:
+                    status = "Running";
+                    break;
+                case Suspended:
+                    status = "Suspended";
+                    break;
+                case Done:
+                    status = "Done";
+                    break;
+                case Terminated:
+                    status = "Terminated";
+                    break;
+            }
+            printf("[%d]   %s    ", curjob->jid, status);
+            for (int i = 0; i < curjob->argc; i++){
+                printf("%s ", curjob->args[i]);
+            }
+            printf("\n");
+        }
+        if (curjob->status == Done || curjob->status == Terminated) {
+            remove_job(curjob->pid);
+        } else {
+            unchange_status(curjob->pid);
         }
     }
 }

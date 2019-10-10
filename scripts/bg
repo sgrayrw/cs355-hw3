@@ -1,0 +1,28 @@
+cat - &
+bg
+bg
+fg
+ctrl-z
+bg
+jobs
+kill %
+
+sleep 50
+ctrl-z
+sleep 50
+ctrl-z
+sleep 50
+ctrl-z
+bg %2
+jobs
+bg %0
+bg %job
+bg !@#$%^
+bg asdf
+bg 1
+bg %1
+jobs
+bg
+jobs
+# wait all
+jobs

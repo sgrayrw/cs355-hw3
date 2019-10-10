@@ -2,31 +2,18 @@ cat - &
 cat - &
 cat - &
 cat - &
-
 jobs
-
 fg
-
 fg %2
-
 jobs
-
 fg %
-
 jobs
-
 fg%
-
 fg %2
-
 fg %0
-
 fg %job
-
 fg !@#$%^
-
 fg asdf
-
 fg 1
-
 fg  %    1
+fg

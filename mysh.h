@@ -23,6 +23,7 @@
 #endif
 
 // global vars
+bool print;
 char *line; // dynamically allocated in read_line()
 char **tokens, **args; // dynamically allocated in parse_line()
 int argc, tokens_len;

@@ -117,18 +117,18 @@ void launch_process(bool background) {
             signal(i, SIG_DFL);
         }
         setpgrp();
-        add_job(getpid(), Running, argc, args, &mysh_tc);
         if (execvp(args[0], args) == -1) {
-            remove_job(getpid());
             if (errno == ENOENT) {
                 fprintf(stderr, "No such file or directory.\n");
             } else {
                 fprintf(stderr, "%s: command not found.\n", tokens[0]);
             }
+            free_tokens();
             exit(EXIT_FAILURE);
         }
     } else if (pid > 0) { // parent
         setpgid(pid, pid);
+        add_job(pid, Running, argc, args, &mysh_tc);
         if (!background) {
             tcsetpgrp(STDIN_FILENO, pid);
             waitpid(pid, &status, WUNTRACED);

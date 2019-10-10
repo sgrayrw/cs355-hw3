@@ -12,11 +12,19 @@ void initialize_handlers() {
         .sa_flags = SA_RESTART | SA_SIGINFO
     };
 
+    struct sigaction sigusr1_action = {
+        .sa_sigaction = &sigusr1_handler,
+        .sa_flags = SA_RESTART | SA_SIGINFO
+    };
+
     sigemptyset(&sigint_action.sa_mask);
     sigaction(SIGINT, &sigint_action, NULL);
 
     sigemptyset(&sigchld_action.sa_mask);
     sigaction(SIGCHLD, &sigchld_action, NULL);
+
+    sigemptyset(&sigusr1_action.sa_mask);
+//    sigaction(SIGUSR1, &sigusr1_action, NULL);
 
     signal(SIGTERM, SIG_IGN);
     signal(SIGTSTP, SIG_IGN);
@@ -35,7 +43,7 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
     int status;
     switch (info->si_code) {
         case CLD_EXITED: case CLD_KILLED: case CLD_DUMPED:
-            if (tcgetpgrp(STDIN_FILENO) == getpgid(child)) {
+            if (tcgetpgrp(STDIN_FILENO) == child) {
                 waitpid(info->si_pid, &status, 0);
                 tcsetpgrp(STDIN_FILENO, getpgrp());
                 tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
@@ -43,7 +51,7 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
             }
             break;
         case CLD_STOPPED:
-            if (tcgetpgrp(STDIN_FILENO) == getpgid(child)) {
+            if (tcgetpgrp(STDIN_FILENO) == child) {
                 tcgetattr(STDIN_FILENO, &child_tc);
                 tcsetpgrp(STDIN_FILENO, getpgrp());
                 tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
@@ -58,4 +66,8 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
         default:
             break; //nothing
     }
+}
+
+void sigusr1_handler(int sig, siginfo_t *info, void *ucontext){
+    add_job(info->si_pid, Running, argc, args, &mysh_tc);
 }

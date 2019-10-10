@@ -9,6 +9,10 @@ int main() {
     tcgetattr(STDIN_FILENO, &mysh_tc);
 
     while (true) {
+
+        process_changed_jobs(print);
+        print = true;
+
         read_line(); // read into line buffer
         parse_line(); // parse arguments
         eval(); // evaluate arguments
@@ -92,6 +96,9 @@ void eval() {
                     background = true;
                 } else {
                     background = false;
+                }
+                if (strcmp(args[0], "jobs") == 0) {
+                    print = false;
                 }
                 launch_process(background);
                 free(args);

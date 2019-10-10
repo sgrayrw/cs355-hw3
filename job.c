@@ -63,6 +63,7 @@ int remove_job(pid_t pid) {
     if (cur && cur->job->pid == pid) {
         jobs = cur->next;
         free_node(cur);
+        jobcnt --;
         return 0;
     }
 
@@ -76,6 +77,7 @@ int remove_job(pid_t pid) {
     } else {
         prev->next = cur->next;
         free_node(cur);
+        jobcnt--;
         return 0;
     }
 }

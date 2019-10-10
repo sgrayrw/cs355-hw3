@@ -1,6 +1,5 @@
 #include "sighand.h"
 #include "job.h"
-#include "mysh.h"
 
 void initialize_handlers() {
     struct sigaction sigint_action = {
@@ -26,19 +25,19 @@ void initialize_handlers() {
 }
 
 void sigint_handler(int sig) {
-    printf("\n");
+    write(STDOUT_FILENO, "\n", sizeof(char));
 }
 
 void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
     struct termios child_tc;
+    pid_t pid;
     pid_t child = info->si_pid;
     int status;
+    bool foreground = tcgetpgrp(STDIN_FILENO) == child;
     switch (info->si_code) {
         case CLD_EXITED: case CLD_KILLED: case CLD_DUMPED:
-            if (tcgetpgrp(STDIN_FILENO) == child) {
-                waitpid(info->si_pid, &status, 0);
-                tcsetpgrp(STDIN_FILENO, getpgrp());
-                tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
+            if (foreground) {
+                // TODO foreground job exited
             }
             if (info->si_code == CLD_EXITED) {
                 change_job_status(child, Done, NULL);
@@ -47,10 +46,8 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
             }
             break;
         case CLD_STOPPED:
-            if (tcgetpgrp(STDIN_FILENO) == child) {
+            if (foreground) {
                 tcgetattr(STDIN_FILENO, &child_tc);
-                tcsetpgrp(STDIN_FILENO, getpgrp());
-                tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
                 change_job_status(child, Suspended, &child_tc);
             } else {
                 change_job_status(child, Suspended, NULL);
@@ -61,5 +58,12 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
             break;
         default:
             break; //nothing
+    }
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+        if (WIFEXITED(status)) {
+            change_job_status(pid, Done, NULL);
+        } else {
+            change_job_status(pid, Terminated, NULL);
+        }
     }
 }

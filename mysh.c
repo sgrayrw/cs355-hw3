@@ -26,8 +26,11 @@ void read_line() {
     if (getline(&line, &n, stdin) == -1) {
         if (feof(stdin)) {
             my_exit();
-        } else {
+        } else if (errno == EINTR) {
             clearerr(stdin);
+        } else {
+            fprintf(stderr, "Error getting input. Exiting shell.\n");
+            my_exit();
         }
     }
 }
@@ -110,7 +113,7 @@ void eval() {
 }
 
 void launch_process(bool background) {
-    int i, status;
+    int i, status, jid;
     pid_t pid;
     struct termios tc_attr;
 
@@ -131,17 +134,21 @@ void launch_process(bool background) {
             } else {
                 fprintf(stderr, "%s: command not found.\n", tokens[0]);
             }
+            free_list();
             free_tokens();
             exit(EXIT_FAILURE);
         }
     } else if (pid > 0) { // parent
         setpgid(pid, pid);
+        // TODO jid
         add_job(pid, Running, argc, args, &mysh_tc);
         if (!background) {
             tcsetpgrp(STDIN_FILENO, pid);
             waitpid(pid, &status, WUNTRACED);
             tcsetpgrp(STDIN_FILENO, getpgrp());
             tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
+        } else {
+            printf("[%d] %d\n", jid, pid);
         }
     } else {
         fprintf(stderr, "Error forking a process.\n");

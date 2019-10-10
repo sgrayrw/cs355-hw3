@@ -9,8 +9,6 @@
 
 #define SIG_MIN 1
 
-extern struct termios mysh_tc;
-
 // sighandlers
 void initialize_handlers(); // register for signal handlers using sigaction(), initialize sigset for SIGCHLD to protect critical section on job list
 void sigint_handler(int); // for ctrl-c

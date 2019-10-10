@@ -41,6 +41,7 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
                 tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
                 remove_job(child);
             }
+            break;
         case CLD_STOPPED:
             if (tcgetpgrp(STDIN_FILENO) == getpgid(child)) {
                 tcgetattr(STDIN_FILENO, &child_tc);
@@ -50,9 +51,11 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
             } else {
                 change_job_status(child, Suspended, NULL);
             }
+            break;
         case CLD_CONTINUED:
             change_job_status(child, Running, NULL);
+            break;
         default:
-            ; //nothing
+            break; //nothing
     }
 }

@@ -63,7 +63,8 @@ void my_jobs(){
 
 void my_exit(){
     free_list();
-    printf("Goodbye~");
+    free_tokens();
+    printf("Goodbye~\n");
     exit(EXIT_SUCCESS);
 }
 

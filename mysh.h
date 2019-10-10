@@ -36,6 +36,5 @@ int next_token_length(int); // helper function for parse_line()
 void eval(); // evaluate tokens and call builtin/exec
 void launch_process(bool);
 void free_tokens();
-void free_args();
 
 #endif

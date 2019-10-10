@@ -11,9 +11,8 @@ int main() {
         read_line(); // read into line buffer
         parse_line(); // parse arguments
         eval(); // evaluate arguments
+        free_tokens();
     }
-    free_args();
-    free_tokens();
 }
 
 void read_line() {
@@ -76,7 +75,7 @@ void eval() {
     for (i = 0; i < tokens_len; i++) {
         is_semicolon = strcmp(tokens[i], ";") == 0;
         if (is_semicolon || i == tokens_len - 1) {
-            if (i == tokens_len - 1 && !is_semicolon || i > start_pos) {
+            if ((i == tokens_len - 1 && !is_semicolon) || i > start_pos) {
                 if (i == tokens_len - 1 && !is_semicolon){
                     end_pos = i;
                 } else {
@@ -85,7 +84,7 @@ void eval() {
                 argc = end_pos - start_pos + 1;
                 args = malloc(sizeof(char *) * (argc + 1));
                 memcpy(args, &tokens[start_pos], sizeof(char *) * argc);
-                args[argc + 1] = NULL;
+                args[argc] = NULL;
                 if (strcmp(args[argc - 1], "&") == 0) {
                     argc--;
                     args[argc] = NULL;
@@ -94,6 +93,8 @@ void eval() {
                     background = false;
                 }
                 launch_process(background);
+                free(args);
+                args = NULL;
             }
             start_pos = i + 1;
         }
@@ -116,7 +117,9 @@ void launch_process(bool background) {
             signal(i, SIG_DFL);
         }
         setpgrp();
+        add_job(getpid(), Running, argc, args, &mysh_tc);
         if (execvp(args[0], args) == -1) {
+            remove_job(getpid());
             if (errno == ENOENT) {
                 fprintf(stderr, "No such file or directory.\n");
             } else {
@@ -126,7 +129,6 @@ void launch_process(bool background) {
         }
     } else if (pid > 0) { // parent
         setpgid(pid, pid);
-        add_job(pid, Running, argc, args, &mysh_tc);
         if (!background) {
             tcsetpgrp(STDIN_FILENO, pid);
             waitpid(pid, &status, WUNTRACED);
@@ -150,19 +152,12 @@ void free_tokens() {
         free(tokens);
         tokens = NULL;
     }
-    free(line);
-}
-
-void free_args() {
-    int i;
     if (args != NULL) {
-        for (i = 0; i < argc; i++) {
-            if (args[i] != NULL) {
-                free(args[i]);
-                args[i] = NULL;
-            }
-        }
         free(args);
         args = NULL;
+    }
+    if (line != NULL) {
+        free(line);
+        line = NULL;
     }
 }

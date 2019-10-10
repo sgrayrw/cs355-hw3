@@ -27,6 +27,7 @@ char *line; // dynamically allocated in read_line()
 char **tokens, **args; // dynamically allocated in parse_line()
 int argc, tokens_len;
 struct Node* jobs;
+int jobcnt;
 struct termios mysh_tc;
 
 // main loop

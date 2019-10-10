@@ -1,9 +1,18 @@
 #include "job.h"
 #include "mysh.h"
 
-struct Job* get_job(int jid) {
+struct Job* get_job_jid(int jid) {
     for (struct Node* node = jobs; node; node = node->next) {
         if (node->job->jid == jid) {
+            return node->job;
+        }
+    }
+    return NULL;
+}
+
+struct Job* get_job_pid(pid_t pid) {
+    for (struct Node* node = jobs; node; node = node->next) {
+        if (node->job->pid == pid) {
             return node->job;
         }
     }
@@ -44,6 +53,7 @@ void add_job(pid_t pid, Status status, int _argc, char** args, struct termios* t
         jobs = node;
     }
     sigprocmask(SIG_UNBLOCK, &sigset, NULL);
+    jobcnt++;
 }
 
 int remove_job(pid_t pid) {

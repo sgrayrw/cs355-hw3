@@ -38,6 +38,7 @@ struct Job* get_job_pid(pid_t pid);
 void add_job(pid_t pid, Status status, int argc, char** args, struct termios* tcattr);
 int remove_job(pid_t pid);
 void change_job_status(pid_t pid, Status status, struct termios* tcattr);
+void process_changed_jobs(bool print);
 void free_node(struct Node* node);
 void free_list();
 

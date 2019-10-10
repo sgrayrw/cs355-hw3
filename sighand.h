@@ -15,6 +15,5 @@ extern struct termios mysh_tc;
 void initialize_handlers(); // register for signal handlers using sigaction(), initialize sigset for SIGCHLD to protect critical section on job list
 void sigint_handler(int); // for ctrl-c
 void sigchld_handler(int, siginfo_t *, void *); // for child status changes
-void sigusr1_handler(int, siginfo_t *, void *);
 
 #endif

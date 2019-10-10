@@ -12,19 +12,11 @@ void initialize_handlers() {
         .sa_flags = SA_RESTART | SA_SIGINFO
     };
 
-    struct sigaction sigusr1_action = {
-        .sa_sigaction = &sigusr1_handler,
-        .sa_flags = SA_RESTART | SA_SIGINFO
-    };
-
     sigemptyset(&sigint_action.sa_mask);
     sigaction(SIGINT, &sigint_action, NULL);
 
     sigemptyset(&sigchld_action.sa_mask);
     sigaction(SIGCHLD, &sigchld_action, NULL);
-
-    sigemptyset(&sigusr1_action.sa_mask);
-//    sigaction(SIGUSR1, &sigusr1_action, NULL);
 
     signal(SIGTERM, SIG_IGN);
     signal(SIGTSTP, SIG_IGN);
@@ -48,7 +40,11 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
                 tcsetpgrp(STDIN_FILENO, getpgrp());
                 tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
             }
-            remove_job(child);
+            if (info->si_code == CLD_EXITED) {
+                change_job_status(child, Done, NULL);
+            } else {
+                change_job_status(child, Terminated, NULL);
+            }
             break;
         case CLD_STOPPED:
             if (tcgetpgrp(STDIN_FILENO) == child) {
@@ -66,8 +62,4 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
         default:
             break; //nothing
     }
-}
-
-void sigusr1_handler(int sig, siginfo_t *info, void *ucontext){
-    add_job(info->si_pid, Running, argc, args, &mysh_tc);
 }

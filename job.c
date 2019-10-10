@@ -90,8 +90,8 @@ void change_job_status(pid_t pid, Status status, struct termios* tcattr) {
                 free(node->job->tcattr);
                 node->job->tcattr = malloc(sizeof(struct termios));
                 memcpy(node->job->tcattr, tcattr, sizeof(struct termios));
-                node->job->status_changed = true;
             }
+            node->job->status_changed = true;
         }
     }
 }

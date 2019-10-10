@@ -47,8 +47,8 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
                 waitpid(info->si_pid, &status, 0);
                 tcsetpgrp(STDIN_FILENO, getpgrp());
                 tcsetattr(STDIN_FILENO, TCSADRAIN, &mysh_tc);
-                remove_job(child);
             }
+            remove_job(child);
             break;
         case CLD_STOPPED:
             if (tcgetpgrp(STDIN_FILENO) == child) {

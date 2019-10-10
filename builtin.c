@@ -7,7 +7,7 @@ struct Job* lastjob;
 char** currenttokens;
 int length;
 
-void getlastjob();
+int getlastjob();
 
 int builtin(char** neededtokens, int argclength){
     currenttokens = neededtokens;
@@ -43,7 +43,6 @@ void my_jobs(){
     Status currentstatus;
     char* statusstr;
     char* arguement;
-
     while(currentjobs) {
         currentjob = currentjobs->job;
         reverse_job[i] = currentjob;
@@ -56,8 +55,12 @@ void my_jobs(){
         currentstatus = currentjob -> status;
         if (currentstatus == Running){
             statusstr = "Running";
-        }else{
+        }else if (currentstatus == Suspended){
             statusstr = "Suspended";
+        }else if(currentstatus == Done){
+            statusstr = "Done";
+        }else if(currentstatus == Terminated){
+            statusstr = "Terminated";
         }
         printf("[%d]   %s    ",jobid,statusstr);
         for (int i = 0; i<currentjob->argc; i++){
@@ -104,7 +107,9 @@ void my_kill(){
                 continue;
             }
             lastjob_done = true;
-            getlastjob();
+            if(getlastjob()==false){
+                return;
+            }
             currentpid = lastjob->pid;
         }else{
             if ((jobid = atoi(currenttokens[i]+1))==0){
@@ -133,7 +138,9 @@ void my_fg(){
     int jobid;
     struct Job *currentjob;
     if (length == 1 || strcmp(currenttokens[1],"%")==0){
-        getlastjob();
+        if(getlastjob()==false){
+            return;
+        }
         currentjob = lastjob;
     } else if (currenttokens[1][0] != '%'){
         printf("fg: illegal argument: %s\n",currenttokens[1]);
@@ -141,6 +148,7 @@ void my_fg(){
     } else {
         if ((jobid = atoi(currenttokens[1] + 1))==0){
             printf("fg: illegal pid: %s\n", currenttokens[1]);
+            return;
         }
         if (get_job_jid(jobid) == NULL) {
             printf("fg: no such job: %s\n", currenttokens[1]);
@@ -166,7 +174,9 @@ void my_bg(){
     int currentpid;
 
     if (length == 1){
-        getlastjob();
+        if(getlastjob()==false){
+            return;
+        }
         currentpid = lastjob->pid;
         kill(currentpid,SIGCONT);
     }
@@ -181,11 +191,14 @@ void my_bg(){
                 continue;
             }
             lastjob_done = true;
-            getlastjob();
+            if(getlastjob()==false){
+                return;
+            }
             currentpid = lastjob->pid;
         }else {
             if((jobid = atoi(currenttokens[i] + 1))==0){
                 printf("bg: illegal pid: %s\n", currenttokens[i]);
+                return;
             }
             if (get_job_jid(jobid) == NULL) {
                 printf("bg: no such job: %s\n", currenttokens[i]);
@@ -199,11 +212,13 @@ void my_bg(){
     }
 }
 
-void getlastjob(){
+int getlastjob(){
     bg_jobs = jobs;
     if (jobs == NULL){
         printf("No current job\n");
+        return false;
     }
     struct Node* currentjobs = bg_jobs;
     lastjob = currentjobs->job;
+    return true;
 }

@@ -63,6 +63,7 @@ int remove_job(pid_t pid) {
     if (cur && cur->job->pid == pid) {
         jobs = cur->next;
         free_node(cur);
+        jobcnt --;
         return 0;
     }
 
@@ -76,6 +77,7 @@ int remove_job(pid_t pid) {
     } else {
         prev->next = cur->next;
         free_node(cur);
+        jobcnt--;
         return 0;
     }
 }
@@ -88,8 +90,8 @@ void change_job_status(pid_t pid, Status status, struct termios* tcattr) {
                 free(node->job->tcattr);
                 node->job->tcattr = malloc(sizeof(struct termios));
                 memcpy(node->job->tcattr, tcattr, sizeof(struct termios));
-                node->job->status_changed = true;
             }
+            node->job->status_changed = true;
         }
     }
 }

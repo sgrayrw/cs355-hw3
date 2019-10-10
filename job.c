@@ -36,6 +36,7 @@ void add_job(pid_t pid, Status status, int _argc, char** args, struct termios* t
     }
     job->tcattr = malloc(sizeof(struct termios));
     memcpy(job->tcattr, tcattr, sizeof(struct termios));
+    job->status_changed = false;
 
     struct Node* node = malloc(sizeof(struct Node));
     node->job = job;
@@ -87,6 +88,7 @@ void change_job_status(pid_t pid, Status status, struct termios* tcattr) {
                 free(node->job->tcattr);
                 node->job->tcattr = malloc(sizeof(struct termios));
                 memcpy(node->job->tcattr, tcattr, sizeof(struct termios));
+                node->job->status_changed = true;
             }
         }
     }

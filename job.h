@@ -5,10 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
+#include <stdbool.h>
 
 typedef enum {
     Running,
-    Suspended
+    Suspended,
+    Done,
+    Terminated
 } Status;
 
 struct Job {
@@ -18,6 +21,7 @@ struct Job {
     int argc;
     char** args; // args that started the job
     struct termios* tcattr;
+    bool status_changed;
 };
 
 // job related

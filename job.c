@@ -222,7 +222,6 @@ void logic_update(struct Node* node) {
         return;
     }else if(node->logic_next==node->logic_prev) {
         logic_jobs = node;
-        printf("two's logic:%d\n",logic_jobs->job->jid);
     }else{
         node->logic_prev->logic_next = node->logic_next;
         node->logic_next->logic_prev = node->logic_prev;

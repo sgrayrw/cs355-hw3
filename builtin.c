@@ -98,10 +98,8 @@ void my_kill(){
             }
             currentpid = currentjob->pid;
         }
-        if(kill(currentpid,CURRENTSIG)==0){
-            printf("Success: %d %d\n", currentpid, CURRENTSIG);
-        }else{
-            printf("Fail: %d %d\n", currentpid, CURRENTSIG);
+        if(kill(currentpid,CURRENTSIG)!=0){
+            fprintf(stderr, "Error sending signal\n");
         }
 
     }

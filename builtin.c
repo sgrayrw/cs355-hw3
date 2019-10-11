@@ -179,6 +179,7 @@ void my_bg(){
                 return;
             }
             currentnode = lastnode;
+            currentjob = currentnode->job;
             currentpid = lastnode->job->pid;
         }else {
             if((jobid = atoi(currenttokens[i] + 1))==0){
@@ -194,6 +195,7 @@ void my_bg(){
             }
             currentpid = currentjob->pid;
         }
+        //printf("jobid:%d\n",currentjob->job->jid);
         logic_update(currentnode);
         print_job(currentjob,true);
         kill(currentpid,SIGCONT);

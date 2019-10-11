@@ -32,6 +32,7 @@ struct Node {
 };
 
 extern struct Node* jobs;
+extern int jobcnt;
 
 struct Job* get_job_jid(int jid);
 int add_job(pid_t pid, Status status, int argc, char** args, struct termios* tcattr);

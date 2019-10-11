@@ -11,7 +11,7 @@ struct Job* get_job_jid(int jid) {
             return node->job;
         }
         node = node->next;
-    } while (node->job->jid != jobs->job->jid);
+    } while (node->job != jobs->job);
     return NULL;
 }
 
@@ -51,6 +51,7 @@ int add_job(pid_t pid, Status status, int _argc, char** _args, struct termios* t
         node->prev = jobs->prev;
         jobs->prev->next = node;
         jobs->prev = node;
+        jobs = node;
     }
     sigprocmask(SIG_UNBLOCK, &sigset, NULL);
     return job->jid;
@@ -60,14 +61,16 @@ void remove_job(struct Node* node) {
     if (node == NULL) {
         return;
     }
-    if (node->job->jid == jobs->job->jid) {
-        free_node(jobs);
-        jobs = NULL;
-    } else {
-        node->next->prev = node->prev;
-        node->prev->next = node->next;
-        free_node(node);
+    node->next->prev = node->prev;
+    node->prev->next = node->next;
+    struct Node* tmp = node;
+    if (jobs->job == node->job) {
+        jobs = jobs->next;
+        if (jobs->job == node->job) {
+            jobs = NULL;
+        }
     }
+    free(tmp);
 }
 
 void change_job_status(pid_t pid, Status status, struct termios* tcattr) {
@@ -87,7 +90,7 @@ void change_job_status(pid_t pid, Status status, struct termios* tcattr) {
             return;
         }
         node = node->next;
-    } while (node->job->jid != jobs->job->jid);
+    } while (node->job != jobs->job);
 }
 
 void unchange_status(pid_t pid) {
@@ -101,17 +104,17 @@ void unchange_status(pid_t pid) {
             return;
         }
         node = node->next;
-    } while (node->job->jid != jobs->job->jid);
+    } while (node->job != jobs->job);
 }
 
 void process_changed_jobs(bool _print) {
     if (jobs == NULL) {
         return;
     }
-    struct Node* node = jobs;
-    int start_jid = node->job->jid;
+    struct Node* node = jobs->prev;
+    int i = 0;
     do {
-        if (_print) {
+        if (_print && node->job->status_changed) {
             print_job(node->job);
         }
         if (node->job->status == Done || node->job->status == Terminated) {
@@ -119,8 +122,9 @@ void process_changed_jobs(bool _print) {
         } else {
             unchange_status(node->job->pid);
         }
-        node = node->next;
-    } while (node->job && node->job->jid != start_jid);
+        node = node->prev;
+        i++;
+    } while (i < jobcnt);
 }
 
 void print_job(struct Job* job) {
@@ -168,5 +172,5 @@ void free_list() {
     do {
         remove_job(jobs);
         node = node->next;
-    } while (node->job->jid != jobs->job->jid);
+    } while (node->job != jobs->job);
 }

@@ -81,7 +81,6 @@ void remove_job(struct Node* node) {
 
     struct Node* tmp = node;
     if (logic_jobs->job == node->job) {
-        printf("remove first\n");
         logic_jobs = logic_jobs->next;
         if (logic_jobs->job == node->job) {
             logic_jobs = NULL;
@@ -189,7 +188,7 @@ void print_job(struct Job* job, bool builtin) {
         printf("[%d]\t\t", job->jid);
     }
     else {
-        printf("[%d]\t%s\t\t", job->jid, statusstr);
+        printf("[%d]\t%s\t", job->jid, statusstr);
     }
     for (int i = 0; i < job->argc; ++i){
         printf("%s ", job->args[i]);
@@ -226,5 +225,4 @@ void logic_update(struct Node* node) {
     logic_jobs->logic_prev->logic_next = node;
     logic_jobs->logic_prev = node;
     logic_jobs = node;
-    printf("%d\n",logic_jobs->job->jid);
 }

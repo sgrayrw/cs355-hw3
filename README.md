@@ -47,7 +47,7 @@ We tested our shell with respect to the following aspects:
 
 **Signal handling**
 
-- we had another process sending various signals that would terminate/hang
+- We had another process sending various signals that would terminate/hang
 a process to the shell. The shell successfully handles all signals
 that could be handled without affecting behavior of the child processes.
 - We tested concurrency handling abilities of the signal handlers by 

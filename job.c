@@ -151,19 +151,21 @@ void process_changed_jobs(bool _print) {
     int i = 0;
     int curjobcnt = jobcnt;
     do {
+        struct Node* tmp = NULL;
         if (node->job->exited_in_fg) {
-            remove_job(node);
+            tmp = node;
         } else {
             if (_print && node->job->status_changed) {
                 print_job(node->job, false);
             }
             if (node->job->status == Done || node->job->status == Terminated) {
-                remove_job(node);
+                tmp = node;
             } else {
                 unchange_status(node->job->pid);
             }
         }
         node = node->prev;
+        remove_job(tmp);
         i++;
     } while (i < curjobcnt);
 }

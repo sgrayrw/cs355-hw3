@@ -80,6 +80,9 @@ int next_token_length(int position) {
 void eval() {
     int i, start_pos = 0, end_pos;
     bool background, is_semicolon;
+    if (line == NULL) {
+        return;
+    }
     for (i = 0; i < tokens_len; i++) {
         is_semicolon = strcmp(tokens[i], ";") == 0;
         if (is_semicolon || i == tokens_len - 1) {

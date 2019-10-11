@@ -33,6 +33,7 @@ int add_job(pid_t pid, Status status, int _argc, char** _args, struct termios* t
     job->tcattr = malloc(sizeof(struct termios));
     memcpy(job->tcattr, tcattr, sizeof(struct termios));
     job->status_changed = false;
+    job->exited_in_fg = false;
 
     struct Node* node = malloc(sizeof(struct Node));
     node->job = job;
@@ -46,12 +47,22 @@ int add_job(pid_t pid, Status status, int _argc, char** _args, struct termios* t
         jobs = node;
         jobs->next = jobs;
         jobs->prev = jobs;
+
+        logic_jobs = node;
+        logic_jobs->logic_next = logic_jobs;
+        logic_jobs->logic_prev = logic_jobs;
     } else {
         node->next = jobs;
         node->prev = jobs->prev;
         jobs->prev->next = node;
         jobs->prev = node;
         jobs = node;
+
+        node->logic_next = logic_jobs;
+        node->logic_prev = logic_jobs->logic_prev;
+        logic_jobs->logic_prev->logic_next = node;
+        logic_jobs->logic_prev = node;
+        logic_jobs = node;
     }
     sigprocmask(SIG_UNBLOCK, &sigset, NULL);
     jobcnt++;
@@ -62,16 +73,26 @@ void remove_job(struct Node* node) {
     if (node == NULL) {
         return;
     }
+
     node->next->prev = node->prev;
     node->prev->next = node->next;
+    node->logic_next->logic_prev = node->logic_prev;
+    node->logic_prev->logic_next = node->logic_next;
+
     struct Node* tmp = node;
+    if (logic_jobs->job == node->job) {
+        logic_jobs = logic_jobs->next;
+        if (logic_jobs->job == node->job) {
+            logic_jobs = NULL;
+        }
+    }
     if (jobs->job == node->job) {
         jobs = jobs->next;
         if (jobs->job == node->job) {
             jobs = NULL;
         }
     }
-    free(tmp);
+    free_node(tmp);
     jobcnt--;
 }
 
@@ -90,6 +111,19 @@ void change_job_status(pid_t pid, Status status, struct termios* tcattr) {
             }
             node->job->status_changed = true;
             return;
+        }
+        node = node->next;
+    } while (node->job != jobs->job);
+}
+
+void exited_in_fg(pid_t pid) {
+    if (jobs == NULL) {
+        return;
+    }
+    struct Node* node = jobs;
+    do {
+        if (node->job->pid == pid) {
+            node->job->exited_in_fg = true;
         }
         node = node->next;
     } while (node->job != jobs->job);
@@ -117,13 +151,17 @@ void process_changed_jobs(bool _print) {
     int i = 0;
     int curjobcnt = jobcnt;
     do {
-        if (_print && node->job->status_changed) {
-            print_job(node->job);
-        }
-        if (node->job->status == Done || node->job->status == Terminated) {
+        if (node->job->exited_in_fg) {
             remove_job(node);
         } else {
-            unchange_status(node->job->pid);
+            if (_print && node->job->status_changed) {
+                print_job(node->job);
+            }
+            if (node->job->status == Done || node->job->status == Terminated) {
+                remove_job(node);
+            } else {
+                unchange_status(node->job->pid);
+            }
         }
         node = node->prev;
         i++;
@@ -176,4 +214,14 @@ void free_list() {
         remove_job(jobs);
         node = node->next;
     } while (node->job != jobs->job);
+}
+
+void logic_update(struct Node* node) {
+    node->logic_prev->logic_next = node->logic_next;
+    node->logic_next->logic_prev = node->logic_prev;
+    node->logic_next = logic_jobs;
+    node->logic_prev = logic_jobs->logic_prev;
+    logic_jobs->logic_prev->logic_next = node;
+    logic_jobs->logic_prev = node;
+    logic_jobs = node;
 }

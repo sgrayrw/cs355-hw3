@@ -15,13 +15,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define DEBUG 1
-#ifdef DEBUG
-# define DEBUG_PRINT(msg) printf msg
-#else
-# define DEBUG_PRINT(msg) do {} while (0)
-#endif
-
 // global vars
 bool print;
 char *line; // dynamically allocated in read_line()

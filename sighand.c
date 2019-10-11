@@ -11,9 +11,10 @@ void initialize_handlers() {
         .sa_flags = SA_RESTART | SA_SIGINFO
     };
 
+#ifndef DEBUG
     sigemptyset(&sigint_action.sa_mask);
     sigaction(SIGINT, &sigint_action, NULL);
-
+#endif
     sigemptyset(&sigchld_action.sa_mask);
     sigaction(SIGCHLD, &sigchld_action, NULL);
 
@@ -38,7 +39,6 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
         case CLD_EXITED: case CLD_KILLED: case CLD_DUMPED:
             if (foreground) {
                 // TODO foreground job exited
-                
             }
             if (info->si_code == CLD_EXITED) {
                 change_job_status(child, Done, NULL);

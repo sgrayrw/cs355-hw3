@@ -34,18 +34,44 @@ the reliability of the shell.
     does not terminate suspended processes); sends `SIGKILL` with flag `-9`
     - `fg [%<#>]`, `bg [%<#>]`
 - handle multiple commands with `;`
-    
+- retrieve and change job status asynchronously and print status
+of changed jobs synchronounsly before next prompt
+  
+
 **Not implemented**
 - pipes and redirections
 
-## Test
+## Testing the shell
 
 We tested our shell with respect to the following aspects:
 
 **Signal handling**
+
 - we had another process sending various signals that would terminate/hang
 a process to the shell. The shell successfully handles all signals
 that could be handled without affecting behavior of the child processes.
 - We tested concurrency handling abilities of the signal handlers by 
 firing off hundreds of child processes that would terminate at the same
 time. All `SIGCHLD` signals were properly handled and there was no lost.
+
+**Concurrency**
+
+In addition to the concurrency handling of signal handlers,
+we tested cases where there are jobs created at the same time
+when jobs are terminated/suspended. The job list were performing properly.
+
+**Built-in commands**
+
+We tested different flags/options regarding the built-in commands we support.
+
+- `kill [%<#>]`: properly handles multiple targets within one line;
+`-9` flag works properly
+- `fg [%<#>]`, `bg [%<#>]`: successfully operates on the last
+job backgrounded/suspended with no flag or `%` without job id
+
+**Random inputs**
+
+We tested our shell and built-in commands against random inputs
+including nonexistent commands, correct input with random whitespaces, 
+correct command with nonexistent/wrong flag/option. The shell responds to
+them properly with relevant error messages.

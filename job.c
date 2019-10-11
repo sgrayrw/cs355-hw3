@@ -2,24 +2,20 @@
 #include "mysh.h"
 
 struct Job* get_job_jid(int jid) {
-    for (struct Node* node = jobs; node; node = node->next) {
+    if (jobs == NULL) {
+        return NULL;
+    }
+    struct Node* node = jobs;
+    do {
         if (node->job->jid == jid) {
             return node->job;
         }
-    }
+        node = node->next;
+    } while (node->job->jid != jobs->job->jid);
     return NULL;
 }
 
-struct Job* get_job_pid(pid_t pid) {
-    for (struct Node* node = jobs; node; node = node->next) {
-        if (node->job->pid == pid) {
-            return node->job;
-        }
-    }
-    return NULL;
-}
-
-int add_job(pid_t pid, Status status, int _argc, char** args, struct termios* tcattr) {
+int add_job(pid_t pid, Status status, int _argc, char** _args, struct termios* tcattr) {
     struct Job* job = malloc(sizeof(struct Job));
     if (jobs == NULL) {
         job->jid = 1;
@@ -31,8 +27,8 @@ int add_job(pid_t pid, Status status, int _argc, char** args, struct termios* tc
     job->argc = _argc;
     job->args = malloc(sizeof(char*) * _argc);
     for (int i = 0; i < _argc; ++i) {
-        job->args[i] = malloc(strlen(args[i]) + 1);
-        strcpy(job->args[i], args[i]);
+        job->args[i] = malloc(strlen(_args[i]) + 1);
+        strcpy(job->args[i], _args[i]);
     }
     job->tcattr = malloc(sizeof(struct termios));
     memcpy(job->tcattr, tcattr, sizeof(struct termios));
@@ -61,6 +57,9 @@ int add_job(pid_t pid, Status status, int _argc, char** args, struct termios* tc
 }
 
 void remove_job(struct Node* node) {
+    if (node == NULL) {
+        return;
+    }
     if (node->job->jid == jobs->job->jid) {
         free_node(jobs);
         jobs = NULL;
@@ -72,7 +71,11 @@ void remove_job(struct Node* node) {
 }
 
 void change_job_status(pid_t pid, Status status, struct termios* tcattr) {
-    for (struct Node* node = jobs; node; node = node->next) {
+    if (jobs == NULL) {
+        return;
+    }
+    struct Node* node = jobs;
+    do {
         if (node->job->pid == pid) {
             node->job->status = status;
             if (tcattr) {
@@ -81,21 +84,34 @@ void change_job_status(pid_t pid, Status status, struct termios* tcattr) {
                 memcpy(node->job->tcattr, tcattr, sizeof(struct termios));
             }
             node->job->status_changed = true;
+            return;
         }
-    }
+        node = node->next;
+    } while (node->job->jid != jobs->job->jid);
 }
 
 void unchange_status(pid_t pid) {
-    for (struct Node* node = jobs; node; node = node->next) {
+    if (jobs == NULL) {
+        return;
+    }
+    struct Node* node = jobs;
+    do {
         if (node->job->pid == pid) {
             node->job->status_changed = false;
+            return;
         }
-    }
+        node = node->next;
+    } while (node->job->jid != jobs->job->jid);
 }
 
-void process_changed_jobs(bool print) {
-    for (struct Node* node = jobs; node && node->job->status_changed; node = node->next) {
-        if (print) {
+void process_changed_jobs(bool _print) {
+    if (jobs == NULL) {
+        return;
+    }
+    struct Node* node = jobs;
+    int start_jid = node->job->jid;
+    do {
+        if (_print) {
             print_job(node->job);
         }
         if (node->job->status == Done || node->job->status == Terminated) {
@@ -103,7 +119,8 @@ void process_changed_jobs(bool print) {
         } else {
             unchange_status(node->job->pid);
         }
-    }
+        node = node->next;
+    } while (node->job && node->job->jid != start_jid);
 }
 
 void print_job(struct Job* job) {
@@ -141,14 +158,15 @@ void free_node(struct Node* node) {
     free(node->job);
     node->job = NULL;
     free(node);
-    node = NULL;
 }
 
 void free_list() {
-    struct Node* node = jobs;
-    while (node) {
-        jobs = jobs->next;
-        free_node(node);
-        node = jobs;
+    if (jobs == NULL) {
+        return;
     }
+    struct Node* node = jobs;
+    do {
+        remove_job(jobs);
+        node = node->next;
+    } while (node->job->jid != jobs->job->jid);
 }

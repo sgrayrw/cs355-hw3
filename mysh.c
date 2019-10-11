@@ -27,6 +27,7 @@ void read_line() {
             my_exit();
         } else if (errno == EINTR) {
             clearerr(stdin);
+            if (line) free(line);
             line = NULL;
         } else {
             fprintf(stderr, "Error getting input. Exiting shell.\n");

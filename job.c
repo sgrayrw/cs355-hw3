@@ -211,11 +211,9 @@ void free_node(struct Node* node) {
 }
 
 void free_list() {
-    struct Node* node = jobs, *next = jobs->next;
-    for (int i = 0; i < jobcnt; ++i) {
-        free_node(jobs);
-        jobs = next;
-        next = next->next;
+    int curjobcnt = jobcnt;
+    for (int i = 0; i < curjobcnt; ++i) {
+        remove_job(jobs);
     }
 }
 

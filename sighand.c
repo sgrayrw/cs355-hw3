@@ -38,7 +38,7 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
     switch (info->si_code) {
         case CLD_EXITED: case CLD_KILLED: case CLD_DUMPED:
             if (foreground) {
-                // TODO foreground job exited
+                exited_in_fg(child);
             }
             if (info->si_code == CLD_EXITED) {
                 change_job_status(child, Done, NULL);

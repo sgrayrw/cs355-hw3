@@ -114,7 +114,6 @@ void eval() {
 void launch_process(bool background) {
     int i, status, jid;
     pid_t pid;
-    struct termios tc_attr;
 
     if (builtin(args, argc) == true) {
         return;
@@ -139,8 +138,7 @@ void launch_process(bool background) {
         }
     } else if (pid > 0) { // parent
         setpgid(pid, pid);
-        // TODO jid
-        add_job(pid, Running, argc, args, &mysh_tc);
+        jid = add_job(pid, Running, argc, args, &mysh_tc);
         if (!background) {
             tcsetpgrp(STDIN_FILENO, pid);
             waitpid(pid, &status, WUNTRACED);

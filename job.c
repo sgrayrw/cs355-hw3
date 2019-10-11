@@ -1,14 +1,14 @@
 #include "job.h"
 #include "mysh.h"
 
-struct Job* get_job_jid(int jid) {
+struct Node* get_node_jid(int jid) {
     if (jobs == NULL) {
         return NULL;
     }
     struct Node* node = jobs;
     do {
         if (node->job->jid == jid) {
-            return node->job;
+            return node;
         }
         node = node->next;
     } while (node->job != jobs->job);
@@ -81,7 +81,7 @@ void remove_job(struct Node* node) {
 
     struct Node* tmp = node;
     if (logic_jobs->job == node->job) {
-        logic_jobs = logic_jobs->next;
+        logic_jobs = logic_jobs->logic_next;
         if (logic_jobs->job == node->job) {
             logic_jobs = NULL;
         }
@@ -151,40 +151,47 @@ void process_changed_jobs(bool _print) {
     int i = 0;
     int curjobcnt = jobcnt;
     do {
+        struct Node* tmp = NULL;
         if (node->job->exited_in_fg) {
-            remove_job(node);
+            tmp = node;
         } else {
             if (_print && node->job->status_changed) {
-                print_job(node->job);
+                print_job(node->job, false);
             }
             if (node->job->status == Done || node->job->status == Terminated) {
-                remove_job(node);
+                tmp = node;
             } else {
                 unchange_status(node->job->pid);
             }
         }
         node = node->prev;
+        remove_job(tmp);
         i++;
     } while (i < curjobcnt);
 }
 
-void print_job(struct Job* job) {
+void print_job(struct Job* job, bool builtin) {
     char* statusstr;
     switch (job->status) {
         case Running:
-            statusstr = "Running";
+            statusstr = "Running   ";
             break;
         case Suspended:
-            statusstr = "Suspended";
+            statusstr = "Suspended ";
             break;
         case Done:
-            statusstr = "Done";
+            statusstr = "Done      ";
             break;
         case Terminated:
             statusstr = "Terminated";
             break;
     }
-    printf("[%d]\t%s\t", job->jid, statusstr);
+    if (builtin) {
+        printf("[%d]\t\t", job->jid);
+    }
+    else {
+        printf("[%d]\t%s\t", job->jid, statusstr);
+    }
     for (int i = 0; i < job->argc; ++i){
         printf("%s ", job->args[i]);
     }
@@ -206,22 +213,24 @@ void free_node(struct Node* node) {
 }
 
 void free_list() {
-    if (jobs == NULL) {
-        return;
-    }
-    struct Node* node = jobs;
-    do {
+    int curjobcnt = jobcnt;
+    for (int i = 0; i < curjobcnt; ++i) {
         remove_job(jobs);
-        node = node->next;
-    } while (node->job != jobs->job);
+    }
 }
 
 void logic_update(struct Node* node) {
-    node->logic_prev->logic_next = node->logic_next;
-    node->logic_next->logic_prev = node->logic_prev;
-    node->logic_next = logic_jobs;
-    node->logic_prev = logic_jobs->logic_prev;
-    logic_jobs->logic_prev->logic_next = node;
-    logic_jobs->logic_prev = node;
-    logic_jobs = node;
+    if (node == logic_jobs) {
+        return;
+    }else if(node->logic_next==node->logic_prev) {
+        logic_jobs = node;
+    }else{
+        node->logic_prev->logic_next = node->logic_next;
+        node->logic_next->logic_prev = node->logic_prev;
+        node->logic_next = logic_jobs;
+        node->logic_prev = logic_jobs->logic_prev;
+        logic_jobs->logic_prev->logic_next = node;
+        logic_jobs->logic_prev = node;
+        logic_jobs = node;
+    }
 }

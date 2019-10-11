@@ -1,14 +1,14 @@
 #include "job.h"
 #include "mysh.h"
 
-struct Job* get_job_jid(int jid) {
+struct Node* get_node_jid(int jid) {
     if (jobs == NULL) {
         return NULL;
     }
     struct Node* node = jobs;
     do {
         if (node->job->jid == jid) {
-            return node->job;
+            return node;
         }
         node = node->next;
     } while (node->job != jobs->job);
@@ -81,6 +81,7 @@ void remove_job(struct Node* node) {
 
     struct Node* tmp = node;
     if (logic_jobs->job == node->job) {
+        printf("remove first\n");
         logic_jobs = logic_jobs->next;
         if (logic_jobs->job == node->job) {
             logic_jobs = NULL;
@@ -225,4 +226,5 @@ void logic_update(struct Node* node) {
     logic_jobs->logic_prev->logic_next = node;
     logic_jobs->logic_prev = node;
     logic_jobs = node;
+    printf("%d\n",logic_jobs->job->jid);
 }

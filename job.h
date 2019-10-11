@@ -38,7 +38,7 @@ extern struct Node* jobs;
 extern struct Node* logic_jobs;
 extern int jobcnt;
 
-struct Job* get_job_jid(int jid);
+struct Node* get_node_jid(int jid);
 int add_job(pid_t pid, Status status, int argc, char** args, struct termios* tcattr);
 void remove_job(struct Node* node);
 void change_job_status(pid_t pid, Status status, struct termios* tcattr);

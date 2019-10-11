@@ -54,6 +54,7 @@ int add_job(pid_t pid, Status status, int _argc, char** _args, struct termios* t
         jobs = node;
     }
     sigprocmask(SIG_UNBLOCK, &sigset, NULL);
+    jobcnt++;
     return job->jid;
 }
 
@@ -71,6 +72,7 @@ void remove_job(struct Node* node) {
         }
     }
     free(tmp);
+    jobcnt--;
 }
 
 void change_job_status(pid_t pid, Status status, struct termios* tcattr) {
@@ -113,6 +115,7 @@ void process_changed_jobs(bool _print) {
     }
     struct Node* node = jobs->prev;
     int i = 0;
+    int curjobcnt = jobcnt;
     do {
         if (_print && node->job->status_changed) {
             print_job(node->job);
@@ -124,7 +127,7 @@ void process_changed_jobs(bool _print) {
         }
         node = node->prev;
         i++;
-    } while (i < jobcnt);
+    } while (i < curjobcnt);
 }
 
 void print_job(struct Job* job) {

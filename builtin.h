@@ -6,6 +6,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+extern struct termios mysh_tc;
+
 // builtin functions
 int builtin(char** neededtokens, int argclength);
 void my_exit();

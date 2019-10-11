@@ -2,7 +2,6 @@
 #include "job.h"
 #include "mysh.h"
 
-struct Node* bg_jobs;
 struct Job* lastjob;
 char** currenttokens;
 int length;
@@ -34,41 +33,16 @@ int builtin(char** neededtokens, int argclength){
 }
 
 void my_jobs(){
-    bg_jobs = jobs;
-    struct Job* reverse_job[jobcnt];
-    struct Node* currentjobs = bg_jobs;
-    struct Job* currentjob;
-    int jobid;
-    int i = 0;
-    Status currentstatus;
-    char* statusstr;
-    char* arguement;
-    while(currentjobs) {
-        currentjob = currentjobs->job;
-        reverse_job[i] = currentjob;
-        currentjobs = currentjobs -> next;
-        i++;
+    struct Node* currentjobs = jobs;
+    if(!currentjobs){
+        return;
     }
-    for (int i = jobcnt-1; i>=0;i--){
-        currentjob = reverse_job[i];
-        jobid = currentjob->jid;
-        currentstatus = currentjob -> status;
-        if (currentstatus == Running){
-            statusstr = "Running";
-        }else if (currentstatus == Suspended){
-            statusstr = "Suspended";
-        }else if(currentstatus == Done){
-            statusstr = "Done";
-        }else if(currentstatus == Terminated){
-            statusstr = "Terminated";
-        }
-        printf("[%d]   %s    ",jobid,statusstr);
-        for (int i = 0; i<currentjob->argc; i++){
-            arguement = currentjob -> args[i];
-            printf("%s ",arguement);
-        }
-        printf("\n");
+    int startid = currentjobs -> job -> jid;
+    while (currentjobs->prev->job->jid != startid){
+        print_job(currentjobs->job);
+        currentjobs = currentjobs->prev;
     }
+    print_job(currentjobs->job);
 }
 
 void my_exit(){
@@ -161,9 +135,10 @@ void my_fg(){
     struct termios* currenttermios = currentjob->tcattr;
     int statusnum;
     int* status = &statusnum;
-    tcsetattr(STDIN_FILENO,TCSADRAIN,currenttermios);
-    tcsetpgrp(STDIN_FILENO,currentpid);
     kill(currentpid,SIGCONT);
+    waitpid(currentpid,status,WCONTINUED);
+    tcsetpgrp(STDIN_FILENO,currentpid);
+    tcsetattr(STDIN_FILENO,TCSADRAIN,currenttermios);
     waitpid(currentpid,status,WUNTRACED);
 }
 
@@ -213,12 +188,11 @@ void my_bg(){
 }
 
 int getlastjob(){
-    bg_jobs = jobs;
     if (jobs == NULL){
         printf("No current job\n");
         return false;
     }
-    struct Node* currentjobs = bg_jobs;
+    struct Node* currentjobs = jobs;
     lastjob = currentjobs->job;
     return true;
 }

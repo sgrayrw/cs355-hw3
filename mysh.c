@@ -4,7 +4,6 @@
 
 int main() {
     jobs = NULL;
-    jobcnt = 0;
     initialize_handlers(); // register for signal handlers
     tcgetattr(STDIN_FILENO, &mysh_tc);
 

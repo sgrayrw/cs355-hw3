@@ -10,4 +10,4 @@ job.o: job.c job.h
 builtin.o: builtin.c builtin.h
 	gcc -c -o $@ builtin.c
 clean:
-	rm -f $(TARGET) *.a *.o *~
+	rm -f $(TARGET) *.a *.o *~ vgcore*

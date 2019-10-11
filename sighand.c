@@ -11,10 +11,9 @@ void initialize_handlers() {
         .sa_flags = SA_RESTART | SA_SIGINFO
     };
 
-#ifndef DEBUG
     sigemptyset(&sigint_action.sa_mask);
     sigaction(SIGINT, &sigint_action, NULL);
-#endif
+
     sigemptyset(&sigchld_action.sa_mask);
     sigaction(SIGCHLD, &sigchld_action, NULL);
 

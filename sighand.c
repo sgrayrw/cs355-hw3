@@ -60,9 +60,11 @@ void sigchld_handler(int sig, siginfo_t *info, void *ucontext) {
         default:
             break; //nothing
     }
-    while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+    while ((pid = waitpid(-1, &status, WNOHANG | WUNTRACED)) > 0) {
         if (WIFEXITED(status)) {
             change_job_status(pid, Done, NULL);
+        } else if (WIFSTOPPED(status)) {
+            change_job_status(pid, Suspended, NULL);
         } else {
             change_job_status(pid, Terminated, NULL);
         }

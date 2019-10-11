@@ -41,6 +41,11 @@ of changed jobs synchronounsly before next prompt
 **Not implemented**
 - pipes and redirections
 
+**Limitations**
+- `fg` works perfectly both when `mysh` is executed normally and executed
+in `gdb`, but loses terminal control when `fg` brings back a process
+that requires I/O in `valgrind` 
+
 ## Testing the shell
 
 We tested our shell with respect to the following aspects:

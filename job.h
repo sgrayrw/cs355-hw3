@@ -28,17 +28,18 @@ struct Job {
 struct Node {
     struct Job* job;
     struct Node* next;
+    struct Node* prev;
 };
 
 extern struct Node* jobs;
-extern int jobcnt;
 
 struct Job* get_job_jid(int jid);
 struct Job* get_job_pid(pid_t pid);
-void add_job(pid_t pid, Status status, int argc, char** args, struct termios* tcattr);
-int remove_job(pid_t pid);
+int add_job(pid_t pid, Status status, int argc, char** args, struct termios* tcattr);
+void remove_job(struct Node* node);
 void change_job_status(pid_t pid, Status status, struct termios* tcattr);
 void process_changed_jobs(bool print);
+void print_job(struct Job* job);
 void free_node(struct Node* node);
 void free_list();
 

@@ -19,7 +19,7 @@ struct Job* get_job_pid(pid_t pid) {
     return NULL;
 }
 
-void add_job(pid_t pid, Status status, int _argc, char** args, struct termios* tcattr) {
+int add_job(pid_t pid, Status status, int _argc, char** args, struct termios* tcattr) {
     struct Job* job = malloc(sizeof(struct Job));
     if (jobs == NULL) {
         job->jid = 1;
@@ -48,37 +48,26 @@ void add_job(pid_t pid, Status status, int _argc, char** args, struct termios* t
     sigprocmask(SIG_BLOCK, &sigset, NULL);
     if (jobs == NULL) {
         jobs = node;
-        jobs->next = NULL;
+        jobs->next = jobs;
+        jobs->prev = jobs;
     } else {
         node->next = jobs;
-        jobs = node;
+        node->prev = jobs->prev;
+        jobs->prev->next = node;
+        jobs->prev = node;
     }
     sigprocmask(SIG_UNBLOCK, &sigset, NULL);
-    jobcnt++;
+    return job->jid;
 }
 
-int remove_job(pid_t pid) {
-    struct Node* cur = jobs, *prev = NULL;
-
-    if (cur && cur->job->pid == pid) {
-        jobs = cur->next;
-        free_node(cur);
-        jobcnt --;
-        return 0;
-    }
-
-    while (cur && cur->job->pid != pid) {
-        prev = cur;
-        cur = cur->next;
-    }
-
-    if (cur == NULL) {
-        return -1;
+void remove_job(struct Node* node) {
+    if (node->job->jid == jobs->job->jid) {
+        free_node(jobs);
+        jobs = NULL;
     } else {
-        prev->next = cur->next;
-        free_node(cur);
-        jobcnt--;
-        return 0;
+        node->next->prev = node->prev;
+        node->prev->next = node->next;
+        free_node(node);
     }
 }
 
@@ -105,51 +94,39 @@ void unchange_status(pid_t pid) {
 }
 
 void process_changed_jobs(bool print) {
-    struct Job* reverse_job[jobcnt];
-    struct Node* cur = jobs;
-    struct Job* curjob;
-    int i = 0;
-    char* status;
-    while(cur) {
-        curjob = cur->job;
-        reverse_job[i] = curjob;
-        cur = cur -> next;
-        i++;
-    }
-
-    for (int i = jobcnt-1; i>=0; i--){
-        curjob = reverse_job[i];
-        if (!curjob->status_changed) {
-            continue;
-        }
-
+    for (struct Node* node = jobs; node && node->job->status_changed; node = node->next) {
         if (print) {
-            switch (curjob->status) {
-                case Running:
-                    status = "Running";
-                    break;
-                case Suspended:
-                    status = "Suspended";
-                    break;
-                case Done:
-                    status = "Done";
-                    break;
-                case Terminated:
-                    status = "Terminated";
-                    break;
-            }
-            printf("[%d]   %s    ", curjob->jid, status);
-            for (int i = 0; i < curjob->argc; i++){
-                printf("%s ", curjob->args[i]);
-            }
-            printf("\n");
+            print_job(node->job);
         }
-        if (curjob->status == Done || curjob->status == Terminated) {
-            remove_job(curjob->pid);
+        if (node->job->status == Done || node->job->status == Terminated) {
+            remove_job(node);
         } else {
-            unchange_status(curjob->pid);
+            unchange_status(node->job->pid);
         }
     }
+}
+
+void print_job(struct Job* job) {
+    char* statusstr;
+    switch (job->status) {
+        case Running:
+            statusstr = "Running";
+            break;
+        case Suspended:
+            statusstr = "Suspended";
+            break;
+        case Done:
+            statusstr = "Done";
+            break;
+        case Terminated:
+            statusstr = "Terminated";
+            break;
+    }
+    printf("[%d]\t%s\t", job->jid, statusstr);
+    for (int i = 0; i < job->argc; ++i){
+        printf("%s ", job->args[i]);
+    }
+    printf("\n");
 }
 
 void free_node(struct Node* node) {

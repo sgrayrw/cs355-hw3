@@ -44,7 +44,7 @@ void remove_job(struct Node* node);
 void change_job_status(pid_t pid, Status status, struct termios* tcattr);
 void exited_in_fg(pid_t pid);
 void process_changed_jobs(bool print);
-void print_job(struct Job* job);
+void print_job(struct Job* job, bool builtin);
 void free_node(struct Node* node);
 void free_list();
 

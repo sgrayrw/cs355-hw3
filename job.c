@@ -155,7 +155,7 @@ void process_changed_jobs(bool _print) {
             remove_job(node);
         } else {
             if (_print && node->job->status_changed) {
-                print_job(node->job);
+                print_job(node->job, true);
             }
             if (node->job->status == Done || node->job->status == Terminated) {
                 remove_job(node);
@@ -168,7 +168,7 @@ void process_changed_jobs(bool _print) {
     } while (i < curjobcnt);
 }
 
-void print_job(struct Job* job) {
+void print_job(struct Job* job, bool builtin) {
     char* statusstr;
     switch (job->status) {
         case Running:
@@ -184,7 +184,12 @@ void print_job(struct Job* job) {
             statusstr = "Terminated";
             break;
     }
-    printf("[%d]\t%s\t", job->jid, statusstr);
+    if (builtin) {
+        printf("[%d]\t\t", job->jid);
+    }
+    else {
+        printf("[%d]\t%s\t\t", job->jid, statusstr);
+    }
     for (int i = 0; i < job->argc; ++i){
         printf("%s ", job->args[i]);
     }
@@ -206,14 +211,10 @@ void free_node(struct Node* node) {
 }
 
 void free_list() {
-    if (jobs == NULL) {
-        return;
-    }
-    struct Node* node = jobs;
-    do {
+    int curjobcnt = jobcnt;
+    for (int i = 0; i < curjobcnt; ++i) {
         remove_job(jobs);
-        node = node->next;
-    } while (node->job != jobs->job);
+    }
 }
 
 void logic_update(struct Node* node) {

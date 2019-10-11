@@ -33,16 +33,14 @@ int builtin(char** neededtokens, int argclength){
 }
 
 void my_jobs(){
-    struct Node* currentjobs = jobs;
-    if(!currentjobs){
+    if(!jobs){
         return;
     }
-    int startid = currentjobs -> job -> jid;
-    while (currentjobs->prev->job->jid != startid){
+    struct Node* currentjobs = jobs->prev;
+    for(int i  = 0; i<jobcnt;i++){
         print_job(currentjobs->job);
         currentjobs = currentjobs->prev;
     }
-    print_job(currentjobs->job);
 }
 
 void my_exit(){

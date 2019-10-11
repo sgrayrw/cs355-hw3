@@ -81,8 +81,7 @@ void remove_job(struct Node* node) {
 
     struct Node* tmp = node;
     if (logic_jobs->job == node->job) {
-        printf("remove first\n");
-        logic_jobs = logic_jobs->next;
+        logic_jobs = logic_jobs->logic_next;
         if (logic_jobs->job == node->job) {
             logic_jobs = NULL;
         }
@@ -156,7 +155,7 @@ void process_changed_jobs(bool _print) {
             remove_job(node);
         } else {
             if (_print && node->job->status_changed) {
-                print_job(node->job, true);
+                print_job(node->job, false);
             }
             if (node->job->status == Done || node->job->status == Terminated) {
                 remove_job(node);
@@ -173,13 +172,13 @@ void print_job(struct Job* job, bool builtin) {
     char* statusstr;
     switch (job->status) {
         case Running:
-            statusstr = "Running";
+            statusstr = "Running   ";
             break;
         case Suspended:
-            statusstr = "Suspended";
+            statusstr = "Suspended ";
             break;
         case Done:
-            statusstr = "Done";
+            statusstr = "Done      ";
             break;
         case Terminated:
             statusstr = "Terminated";
@@ -219,12 +218,18 @@ void free_list() {
 }
 
 void logic_update(struct Node* node) {
-    node->logic_prev->logic_next = node->logic_next;
-    node->logic_next->logic_prev = node->logic_prev;
-    node->logic_next = logic_jobs;
-    node->logic_prev = logic_jobs->logic_prev;
-    logic_jobs->logic_prev->logic_next = node;
-    logic_jobs->logic_prev = node;
-    logic_jobs = node;
-    printf("%d\n",logic_jobs->job->jid);
+    if (node == logic_jobs) {
+        return;
+    }else if(node->logic_next==node->logic_prev) {
+        logic_jobs = node;
+        printf("two's logic:%d\n",logic_jobs->job->jid);
+    }else{
+        node->logic_prev->logic_next = node->logic_next;
+        node->logic_next->logic_prev = node->logic_prev;
+        node->logic_next = logic_jobs;
+        node->logic_prev = logic_jobs->logic_prev;
+        logic_jobs->logic_prev->logic_next = node;
+        logic_jobs->logic_prev = node;
+        logic_jobs = node;
+    }
 }
